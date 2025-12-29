@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <!-- 
+      When building in CI (GitHub Actions), exclude iOS and Mac Catalyst targets
+      since those workloads aren't available on Windows runners.
+      Set CI_BUILD=true in the workflow to activate this.
+    -->
+    <ExcludeApplePlatforms Condition="'$(CI_BUILD)' == 'true'">true</ExcludeApplePlatforms>
+  </PropertyGroup>
+</Project>
