@@ -10,13 +10,15 @@ public partial class DashboardPage : ContentPage
         BindingContext = viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         
         if (BindingContext is DashboardViewModel vm)
         {
-            vm.LoadDataCommand.Execute(null);
+            // Wait for database to be initialized before loading data
+            await App.DatabaseInitializedTask;
+            await vm.LoadDataCommand.ExecuteAsync(null);
         }
     }
 }

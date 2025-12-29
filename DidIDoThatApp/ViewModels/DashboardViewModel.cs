@@ -71,10 +71,12 @@ public partial class TaskItemViewModel : ObservableObject
 public partial class DashboardViewModel : BaseViewModel
 {
     private readonly ITaskService _taskService;
+    private readonly IDataPrefetchService? _prefetchService;
 
     public DashboardViewModel(ITaskService taskService)
     {
         _taskService = taskService;
+        _prefetchService = App.DataPrefetchService;
         Title = "Dashboard";
     }
 
@@ -108,9 +110,23 @@ public partial class DashboardViewModel : BaseViewModel
     {
         await ExecuteAsync(async () =>
         {
-            var overdue = await _taskService.GetOverdueTasksAsync();
-            var dueSoon = await _taskService.GetDueSoonTasksAsync();
-            var recent = await _taskService.GetRecentlyCompletedTasksAsync(5);
+            IReadOnlyList<TaskItem> overdue;
+            IReadOnlyList<TaskItem> dueSoon;
+            IReadOnlyList<TaskItem> recent;
+
+            // Use prefetch service if available for faster loading
+            if (_prefetchService != null && _prefetchService.IsDataReady)
+            {
+                overdue = await _prefetchService.GetOverdueTasksAsync();
+                dueSoon = await _prefetchService.GetDueSoonTasksAsync();
+                recent = await _prefetchService.GetRecentlyCompletedTasksAsync(5);
+            }
+            else
+            {
+                overdue = await _taskService.GetOverdueTasksAsync();
+                dueSoon = await _taskService.GetDueSoonTasksAsync();
+                recent = await _taskService.GetRecentlyCompletedTasksAsync(5);
+            }
 
             OverdueTasks = new ObservableCollection<TaskItemViewModel>(
                 overdue.Select(t => new TaskItemViewModel(t)));
@@ -134,6 +150,7 @@ public partial class DashboardViewModel : BaseViewModel
         await ExecuteAsync(async () =>
         {
             await _taskService.CompleteTaskAsync(taskVm.Id);
+            _prefetchService?.InvalidateCache();
         });
 
         // Reload data after ExecuteAsync completes to avoid nested IsBusy blocking

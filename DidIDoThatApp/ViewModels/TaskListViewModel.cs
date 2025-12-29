@@ -36,11 +36,13 @@ public partial class TaskListViewModel : BaseViewModel
 {
     private readonly ITaskService _taskService;
     private readonly ICategoryService _categoryService;
+    private readonly IDataPrefetchService? _prefetchService;
 
     public TaskListViewModel(ITaskService taskService, ICategoryService categoryService)
     {
         _taskService = taskService;
         _categoryService = categoryService;
+        _prefetchService = App.DataPrefetchService;
         Title = "Tasks";
     }
 
@@ -58,8 +60,20 @@ public partial class TaskListViewModel : BaseViewModel
     {
         await ExecuteAsync(async () =>
         {
-            var categories = await _categoryService.GetAllCategoriesAsync();
-            var allTasks = await _taskService.GetAllTasksAsync();
+            IReadOnlyList<Category> categories;
+            IReadOnlyList<TaskItem> allTasks;
+
+            // Use prefetch service if available for faster loading
+            if (_prefetchService != null && _prefetchService.IsDataReady)
+            {
+                categories = await _prefetchService.GetCategoriesAsync();
+                allTasks = await _prefetchService.GetTasksAsync();
+            }
+            else
+            {
+                categories = await _categoryService.GetAllCategoriesAsync();
+                allTasks = await _taskService.GetAllTasksAsync();
+            }
 
             var groups = new List<CategoryGroupViewModel>();
 
@@ -89,6 +103,7 @@ public partial class TaskListViewModel : BaseViewModel
         await ExecuteAsync(async () =>
         {
             await _taskService.CompleteTaskAsync(taskVm.Id);
+            _prefetchService?.InvalidateCache();
         });
 
         // Reload data after ExecuteAsync completes to avoid nested IsBusy blocking
@@ -132,6 +147,7 @@ public partial class TaskListViewModel : BaseViewModel
             await ExecuteAsync(async () =>
             {
                 await _taskService.DeleteTaskAsync(taskVm.Id);
+                _prefetchService?.InvalidateCache();
             });
 
             // Reload data after ExecuteAsync completes to avoid nested IsBusy blocking

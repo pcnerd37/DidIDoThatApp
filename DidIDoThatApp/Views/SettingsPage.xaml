@@ -19,8 +19,8 @@
                            FontAttributes="Bold" />
                     
                     <!-- Permission Status -->
-                    <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasNotificationPermission, Converter={StaticResource InvertedBoolConverter}}">
-                        <VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding HasNotificationPermission, Converter={StaticResource InvertedBoolConverter}}">
+                        <VerticalStackLayout VerticalOptions="Center">
                             <Label Text="Permission Required"
                                    FontSize="14"
                                    TextColor="Orange" />
@@ -32,7 +32,8 @@
                                 Text="Enable"
                                 Command="{Binding RequestNotificationPermissionCommand}"
                                 HeightRequest="36"
-                                Padding="16,0" />
+                                Padding="16,0"
+                                VerticalOptions="Center" />
                     </Grid>
                     
                     <!-- Enable/Disable Notifications -->

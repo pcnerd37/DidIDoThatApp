@@ -12,113 +12,134 @@
                      IconImageSource="add.png" />
     </ContentPage.ToolbarItems>
 
-    <RefreshView Command="{Binding LoadDataCommand}"
-                 IsRefreshing="{Binding IsBusy}">
-        <Grid>
-            <!-- Task List -->
-            <ScrollView IsVisible="{Binding HasNoTasks, Converter={StaticResource InvertedBoolConverter}}">
-                <VerticalStackLayout BindableLayout.ItemsSource="{Binding CategoryGroups}">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="viewmodels:CategoryGroupViewModel">
-                            <VerticalStackLayout Padding="0,8">
-                                <!-- Category Header -->
-                                <Label Text="{Binding Name}"
-                                       FontSize="18"
-                                       FontAttributes="Bold"
-                                       Padding="16,8"
-                                       BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}" />
-                                
-                                <!-- Tasks in Category -->
-                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Tasks}">
-                                    <BindableLayout.ItemTemplate>
-                                        <DataTemplate x:DataType="viewmodels:TaskItemViewModel">
-                                            <SwipeView>
-                                                <SwipeView.LeftItems>
-                                                    <SwipeItems>
-                                                        <SwipeItem Text="Complete"
-                                                                   BackgroundColor="Green"
-                                                                   Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TaskListViewModel}}, Path=CompleteTaskCommand}"
-                                                                   CommandParameter="{Binding .}" />
-                                                    </SwipeItems>
-                                                </SwipeView.LeftItems>
-                                                <SwipeView.RightItems>
-                                                    <SwipeItems>
-                                                        <SwipeItem Text="Delete"
-                                                                   BackgroundColor="Red"
-                                                                   Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TaskListViewModel}}, Path=DeleteTaskCommand}"
-                                                                   CommandParameter="{Binding .}" />
-                                                    </SwipeItems>
-                                                </SwipeView.RightItems>
-                                                <Frame BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
-                                                       Padding="16"
-                                                       Margin="8,4"
-                                                       CornerRadius="8">
-                                                    <Frame.GestureRecognizers>
-                                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TaskListViewModel}}, Path=NavigateToTaskDetailCommand}"
-                                                                              CommandParameter="{Binding .}" />
-                                                    </Frame.GestureRecognizers>
-                                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                                                        <!-- Status Indicator -->
-                                                        <BoxView WidthRequest="8"
-                                                                 HeightRequest="8"
-                                                                 CornerRadius="4"
-                                                                 Color="{Binding StatusColor}"
-                                                                 VerticalOptions="Center" />
-                                                        
-                                                        <!-- Task Info -->
-                                                        <VerticalStackLayout Grid.Column="1" Spacing="4">
-                                                            <Label Text="{Binding Name}"
-                                                                   FontSize="16"
-                                                                   FontAttributes="Bold" />
-                                                            <Label Text="{Binding FrequencyDescription}"
-                                                                   FontSize="12"
-                                                                   TextColor="{StaticResource Gray500}" />
-                                                            <Label Text="{Binding StatusDescription}"
-                                                                   FontSize="12"
-                                                                   TextColor="{Binding StatusColor}" />
-                                                        </VerticalStackLayout>
-                                                        
-                                                        <!-- Chevron -->
-                                                        <Label Grid.Column="2"
-                                                               Text="›"
-                                                               FontSize="24"
-                                                               TextColor="{StaticResource Gray400}"
-                                                               VerticalOptions="Center" />
-                                                    </Grid>
-                                                </Frame>
-                                            </SwipeView>
-                                        </DataTemplate>
-                                    </BindableLayout.ItemTemplate>
+    <Grid>
+        <!-- Main Content -->
+        <RefreshView Command="{Binding LoadDataCommand}"
+                     IsRefreshing="{Binding IsBusy}">
+            <Grid>
+                <!-- Task List -->
+                <ScrollView IsVisible="{Binding HasNoTasks, Converter={StaticResource InvertedBoolConverter}}">
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding CategoryGroups}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="viewmodels:CategoryGroupViewModel">
+                                <VerticalStackLayout Padding="0,8">
+                                    <!-- Category Header -->
+                                    <Label Text="{Binding Name}"
+                                           FontSize="18"
+                                           FontAttributes="Bold"
+                                           Padding="16,8"
+                                           BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}" />
+                                    
+                                    <!-- Tasks in Category -->
+                                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Tasks}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="viewmodels:TaskItemViewModel">
+                                                <SwipeView HeightRequest="90">
+                                                    <SwipeView.LeftItems>
+                                                        <SwipeItems>
+                                                            <SwipeItem Text="Complete"
+                                                                       BackgroundColor="Green"
+                                                                       Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TaskListViewModel}}, Path=CompleteTaskCommand}"
+                                                                       CommandParameter="{Binding .}" />
+                                                        </SwipeItems>
+                                                    </SwipeView.LeftItems>
+                                                    <SwipeView.RightItems>
+                                                        <SwipeItems>
+                                                            <SwipeItem Text="Delete"
+                                                                       BackgroundColor="Red"
+                                                                       Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TaskListViewModel}}, Path=DeleteTaskCommand}"
+                                                                       CommandParameter="{Binding .}" />
+                                                        </SwipeItems>
+                                                    </SwipeView.RightItems>
+                                                    <Frame BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
+                                                           Padding="16"
+                                                           Margin="8,4"
+                                                           CornerRadius="8"
+                                                           HeightRequest="82">
+                                                        <Frame.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TaskListViewModel}}, Path=NavigateToTaskDetailCommand}"
+                                                                                  CommandParameter="{Binding .}" />
+                                                        </Frame.GestureRecognizers>
+                                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                                            <!-- Status Indicator -->
+                                                            <BoxView WidthRequest="8"
+                                                                     HeightRequest="8"
+                                                                     CornerRadius="4"
+                                                                     Color="{Binding StatusColor}"
+                                                                     VerticalOptions="Center" />
+                                                            
+                                                            <!-- Task Info -->
+                                                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                                                <Label Text="{Binding Name}"
+                                                                       FontSize="16"
+                                                                       FontAttributes="Bold" />
+                                                                <Label Text="{Binding FrequencyDescription}"
+                                                                       FontSize="12"
+                                                                       TextColor="{StaticResource Gray500}" />
+                                                                <Label Text="{Binding StatusDescription}"
+                                                                       FontSize="12"
+                                                                       TextColor="{Binding StatusColor}" />
+                                                            </VerticalStackLayout>
+                                                            
+                                                            <!-- Chevron -->
+                                                            <Label Grid.Column="2"
+                                                                   Text="›"
+                                                                   FontSize="24"
+                                                                   TextColor="{StaticResource Gray400}"
+                                                                   VerticalOptions="Center" />
+                                                        </Grid>
+                                                    </Frame>
+                                                </SwipeView>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
                                 </VerticalStackLayout>
-                            </VerticalStackLayout>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
-                </VerticalStackLayout>
-            </ScrollView>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </ScrollView>
 
-            <!-- Empty State -->
-            <VerticalStackLayout IsVisible="{Binding HasNoTasks}"
-                                 VerticalOptions="Center"
+                <!-- Empty State -->
+                <VerticalStackLayout IsVisible="{Binding HasNoTasks}"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Spacing="16"
+                                     Padding="32">
+                    <Label Text="📋"
+                           FontSize="64"
+                           HorizontalOptions="Center" />
+                    <Label Text="No Tasks Yet"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center" />
+                    <Label Text="Tap the + button to add your first maintenance task."
+                           FontSize="14"
+                           TextColor="{StaticResource Gray500}"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" />
+                    <Button Text="Add Task"
+                            Command="{Binding NavigateToAddTaskCommand}"
+                            HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Grid>
+        </RefreshView>
+
+        <!-- Loading Overlay -->
+        <Grid IsVisible="{Binding IsBusy}"
+              BackgroundColor="{AppThemeBinding Light=#80FFFFFF, Dark=#80000000}">
+            <VerticalStackLayout VerticalOptions="Center" 
                                  HorizontalOptions="Center"
-                                 Spacing="16"
-                                 Padding="32">
-                <Label Text="📋"
-                       FontSize="64"
-                       HorizontalOptions="Center" />
-                <Label Text="No Tasks Yet"
-                       FontSize="20"
-                       FontAttributes="Bold"
-                       HorizontalOptions="Center" />
-                <Label Text="Tap the + button to add your first maintenance task."
+                                 Spacing="12">
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   Color="{StaticResource Primary}"
+                                   HeightRequest="50"
+                                   WidthRequest="50" />
+                <Label Text="Loading..."
                        FontSize="14"
-                       TextColor="{StaticResource Gray500}"
-                       HorizontalOptions="Center"
-                       HorizontalTextAlignment="Center" />
-                <Button Text="Add Task"
-                        Command="{Binding NavigateToAddTaskCommand}"
-                        HorizontalOptions="Center" />
+                       TextColor="{StaticResource Primary}"
+                       HorizontalOptions="Center" />
             </VerticalStackLayout>
         </Grid>
-    </RefreshView>
+    </Grid>
 
 </ContentPage>

@@ -10,13 +10,14 @@ public partial class TaskListPage : ContentPage
         BindingContext = viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         
         if (BindingContext is TaskListViewModel vm)
         {
-            vm.LoadDataCommand.Execute(null);
+            await App.DatabaseInitializedTask;
+            await vm.LoadDataCommand.ExecuteAsync(null);
         }
     }
 }

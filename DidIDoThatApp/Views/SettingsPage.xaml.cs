@@ -10,13 +10,13 @@ public partial class SettingsPage : ContentPage
         BindingContext = viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         
         if (BindingContext is SettingsViewModel vm)
         {
-            vm.LoadSettingsCommand.Execute(null);
+            await vm.LoadSettingsCommand.ExecuteAsync(null);
         }
     }
 }

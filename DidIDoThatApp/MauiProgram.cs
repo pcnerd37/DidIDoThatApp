@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Plugin.LocalNotification;
 using IAppNotificationService = DidIDoThatApp.Services.Interfaces.INotificationService;
+using IDataPrefetchService = DidIDoThatApp.Services.Interfaces.IDataPrefetchService;
 
 #if ANDROID
 using DidIDoThatApp.Platforms.Android.Services;
@@ -36,6 +37,7 @@ namespace DidIDoThatApp
 
             // Register services
             builder.Services.AddSingleton<ISettingsService, SettingsService>();
+            builder.Services.AddSingleton<IDataPrefetchService, DataPrefetchService>();
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ITaskService, TaskService>();
             builder.Services.AddScoped<ITaskLogService, TaskLogService>();

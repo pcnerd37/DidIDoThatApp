@@ -10,13 +10,14 @@ public partial class CategoryPage : ContentPage
         BindingContext = viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         
         if (BindingContext is CategoryViewModel vm)
         {
-            vm.LoadDataCommand.Execute(null);
+            await App.DatabaseInitializedTask;
+            await vm.LoadDataCommand.ExecuteAsync(null);
         }
     }
 }

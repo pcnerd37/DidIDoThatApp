@@ -21,14 +21,18 @@ public class CategoryService : ICategoryService
     {
         return await _context.Categories
             .OrderBy(c => c.Name)
-            .ToListAsync();
+            .AsNoTracking()
+            .ToListAsync()
+            .ConfigureAwait(false);
     }
 
     public async Task<Category?> GetCategoryByIdAsync(Guid id)
     {
         return await _context.Categories
             .Include(c => c.Tasks)
-            .FirstOrDefaultAsync(c => c.Id == id);
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id)
+            .ConfigureAwait(false);
     }
 
     public async Task<Category> CreateCategoryAsync(string name, string? icon = null)

@@ -34,7 +34,9 @@ public class TaskService : ITaskService
             .Include(t => t.TaskLogs)
             .OrderBy(t => t.Category!.Name)
             .ThenBy(t => t.Name)
-            .ToListAsync();
+            .AsNoTracking()
+            .ToListAsync()
+            .ConfigureAwait(false);
     }
 
     public async Task<IReadOnlyList<TaskItem>> GetTasksByCategoryAsync(Guid categoryId)
@@ -43,7 +45,9 @@ public class TaskService : ITaskService
             .Where(t => t.CategoryId == categoryId)
             .Include(t => t.TaskLogs)
             .OrderBy(t => t.Name)
-            .ToListAsync();
+            .AsNoTracking()
+            .ToListAsync()
+            .ConfigureAwait(false);
     }
 
     public async Task<TaskItem?> GetTaskByIdAsync(Guid id)
@@ -51,7 +55,9 @@ public class TaskService : ITaskService
         return await _context.Tasks
             .Include(t => t.Category)
             .Include(t => t.TaskLogs)
-            .FirstOrDefaultAsync(t => t.Id == id);
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == id)
+            .ConfigureAwait(false);
     }
 
     public async Task<IReadOnlyList<TaskItem>> GetOverdueTasksAsync()
@@ -80,16 +86,20 @@ public class TaskService : ITaskService
     {
         var recentLogs = await _context.TaskLogs
             .OrderByDescending(l => l.CompletedDate)
-            .Take(count)
+            .Take(count * 2) // Take more to handle distinct tasks
             .Select(l => l.TaskItemId)
             .Distinct()
-            .ToListAsync();
+            .Take(count)
+            .ToListAsync()
+            .ConfigureAwait(false);
 
         var tasks = await _context.Tasks
             .Where(t => recentLogs.Contains(t.Id))
             .Include(t => t.Category)
             .Include(t => t.TaskLogs)
-            .ToListAsync();
+            .AsNoTracking()
+            .ToListAsync()
+            .ConfigureAwait(false);
 
         // Order by most recent completion
         return tasks

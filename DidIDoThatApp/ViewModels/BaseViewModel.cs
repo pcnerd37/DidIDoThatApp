@@ -19,6 +19,9 @@ public abstract partial class BaseViewModel : ObservableObject
 
     public bool IsNotBusy => !IsBusy;
 
+    // Minimum time to show loading indicator (in milliseconds)
+    private const int MinLoadingDisplayTimeMs = 500;
+
     /// <summary>
     /// Executes an async operation with busy state management and error handling.
     /// Use allowReentry=true for RefreshView commands to avoid spinner lock.
@@ -28,6 +31,7 @@ public abstract partial class BaseViewModel : ObservableObject
         if (IsBusy && !allowReentry)
             return;
 
+        var startTime = DateTime.UtcNow;
         try
         {
             IsBusy = true;
@@ -41,6 +45,12 @@ public abstract partial class BaseViewModel : ObservableObject
         }
         finally
         {
+            // Ensure minimum display time for loading indicator
+            var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+            if (elapsed < MinLoadingDisplayTimeMs)
+            {
+                await Task.Delay(MinLoadingDisplayTimeMs - (int)elapsed);
+            }
             IsBusy = false;
         }
     }
@@ -54,6 +64,7 @@ public abstract partial class BaseViewModel : ObservableObject
         if (IsBusy && !allowReentry)
             return default;
 
+        var startTime = DateTime.UtcNow;
         try
         {
             IsBusy = true;
@@ -68,6 +79,12 @@ public abstract partial class BaseViewModel : ObservableObject
         }
         finally
         {
+            // Ensure minimum display time for loading indicator
+            var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+            if (elapsed < MinLoadingDisplayTimeMs)
+            {
+                await Task.Delay(MinLoadingDisplayTimeMs - (int)elapsed);
+            }
             IsBusy = false;
         }
     }

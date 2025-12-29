@@ -39,11 +39,13 @@ public partial class CategoryViewModel : BaseViewModel
 {
     private readonly ICategoryService _categoryService;
     private readonly ITaskService _taskService;
+    private readonly IDataPrefetchService? _prefetchService;
 
     public CategoryViewModel(ICategoryService categoryService, ITaskService taskService)
     {
         _categoryService = categoryService;
         _taskService = taskService;
+        _prefetchService = App.DataPrefetchService;
         Title = "Categories";
     }
 
@@ -73,8 +75,20 @@ public partial class CategoryViewModel : BaseViewModel
     {
         await ExecuteAsync(async () =>
         {
-            var categories = await _categoryService.GetAllCategoriesAsync();
-            var allTasks = await _taskService.GetAllTasksAsync();
+            IReadOnlyList<Category> categories;
+            IReadOnlyList<TaskItem> allTasks;
+
+            // Use prefetch service if available for faster loading
+            if (_prefetchService != null && _prefetchService.IsDataReady)
+            {
+                categories = await _prefetchService.GetCategoriesAsync();
+                allTasks = await _prefetchService.GetTasksAsync();
+            }
+            else
+            {
+                categories = await _categoryService.GetAllCategoriesAsync();
+                allTasks = await _taskService.GetAllTasksAsync();
+            }
 
             var categoryVms = categories.Select(c => new CategoryItemViewModel(
                 c,
@@ -127,6 +141,7 @@ public partial class CategoryViewModel : BaseViewModel
             NewCategoryName = string.Empty;
             NewCategoryIcon = string.Empty;
             created = true;
+            _prefetchService?.InvalidateCache();
         });
 
         // Reload data after ExecuteAsync completes to avoid nested IsBusy blocking
@@ -186,6 +201,7 @@ public partial class CategoryViewModel : BaseViewModel
             EditCategoryName = string.Empty;
             EditCategoryIcon = string.Empty;
             saved = true;
+            _prefetchService?.InvalidateCache();
         });
 
         // Reload data after ExecuteAsync completes to avoid nested IsBusy blocking
@@ -229,6 +245,7 @@ public partial class CategoryViewModel : BaseViewModel
             await ExecuteAsync(async () =>
             {
                 await _categoryService.DeleteCategoryAsync(categoryVm.Id);
+                _prefetchService?.InvalidateCache();
             });
 
             // Reload data after ExecuteAsync completes to avoid nested IsBusy blocking
