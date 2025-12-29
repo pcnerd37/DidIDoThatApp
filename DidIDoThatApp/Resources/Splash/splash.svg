@@ -2,30 +2,30 @@
 <svg width="456" height="456" viewBox="0 0 456 456" xmlns="http://www.w3.org/2000/svg">
   <!-- Clipboard body -->
   <rect x="128" y="98" width="200" height="260" rx="16" ry="16" fill="#ffffff"/>
-  
+
   <!-- Clipboard clip at top -->
   <rect x="178" y="78" width="100" height="40" rx="8" ry="8" fill="#ffffff"/>
   <rect x="198" y="68" width="60" height="20" rx="6" ry="6" fill="#ffffff"/>
-  
+
   <!-- Checkbox 1 - Checked -->
-  <rect x="158" y="148" width="32" height="32" rx="6" ry="6" fill="none" stroke="#512BD4" stroke-width="4"/>
-  <path d="M166 164 L174 174 L190 154" fill="none" stroke="#512BD4" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="158" y="148" width="32" height="32" rx="6" ry="6" fill="#ffffff" stroke="#512BD4" stroke-width="3"/>
+  <path d="M166 164 L174 174 L190 154" fill="none" stroke="#512BD4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- Line 1 -->
-  <rect x="206" y="158" width="92" height="12" rx="4" ry="4" fill="#512BD4" opacity="0.3"/>
-  
+  <rect x="206" y="158" width="92" height="12" rx="4" ry="4" fill="#e0d4f7"/>
+
   <!-- Checkbox 2 - Checked -->
-  <rect x="158" y="198" width="32" height="32" rx="6" ry="6" fill="none" stroke="#512BD4" stroke-width="4"/>
-  <path d="M166 214 L174 224 L190 204" fill="none" stroke="#512BD4" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="158" y="198" width="32" height="32" rx="6" ry="6" fill="#ffffff" stroke="#512BD4" stroke-width="3"/>
+  <path d="M166 214 L174 224 L190 204" fill="none" stroke="#512BD4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- Line 2 -->
-  <rect x="206" y="208" width="72" height="12" rx="4" ry="4" fill="#512BD4" opacity="0.3"/>
-  
+  <rect x="206" y="208" width="72" height="12" rx="4" ry="4" fill="#e0d4f7"/>
+
   <!-- Checkbox 3 - Unchecked (pending task) -->
-  <rect x="158" y="248" width="32" height="32" rx="6" ry="6" fill="none" stroke="#512BD4" stroke-width="4"/>
+  <rect x="158" y="248" width="32" height="32" rx="6" ry="6" fill="#ffffff" stroke="#512BD4" stroke-width="3"/>
   <!-- Line 3 -->
-  <rect x="206" y="258" width="82" height="12" rx="4" ry="4" fill="#512BD4" opacity="0.3"/>
-  
+  <rect x="206" y="258" width="82" height="12" rx="4" ry="4" fill="#e0d4f7"/>
+
   <!-- Checkbox 4 - Unchecked (pending task) -->
-  <rect x="158" y="298" width="32" height="32" rx="6" ry="6" fill="none" stroke="#512BD4" stroke-width="4"/>
+  <rect x="158" y="298" width="32" height="32" rx="6" ry="6" fill="#ffffff" stroke="#512BD4" stroke-width="3"/>
   <!-- Line 4 -->
-  <rect x="206" y="308" width="62" height="12" rx="4" ry="4" fill="#512BD4" opacity="0.3"/>
+  <rect x="206" y="308" width="62" height="12" rx="4" ry="4" fill="#e0d4f7"/>
 </svg>
