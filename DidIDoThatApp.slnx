@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Docs/">
+    <File Path="DidIDoThatApp/Docs/prd_did_i_do_that.md" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="DidIDoThatApp.Tests/DidIDoThatApp.Tests.csproj" />
+  </Folder>
+  <Project Path="DidIDoThatApp/DidIDoThatApp.csproj" />
+</Solution>

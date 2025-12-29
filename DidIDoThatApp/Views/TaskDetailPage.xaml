@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:DidIDoThatApp.ViewModels"
+             xmlns:models="clr-namespace:DidIDoThatApp.Models"
+             x:Class="DidIDoThatApp.Views.TaskDetailPage"
+             x:DataType="viewmodels:TaskDetailViewModel"
+             Title="{Binding Title}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Edit"
+                     Command="{Binding NavigateToEditCommand}" />
+        <ToolbarItem Text="Delete"
+                     Command="{Binding DeleteTaskCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <RefreshView Command="{Binding LoadDataCommand}"
+                 IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="16">
+
+                <!-- Task Status Card -->
+                <Frame BackgroundColor="{Binding StatusColor}"
+                       Padding="16"
+                       CornerRadius="12">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="{Binding CategoryIcon}"
+                               FontSize="40"
+                               HorizontalOptions="Center" />
+                        <Label Text="{Binding TaskName}"
+                               FontSize="24"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="{Binding StatusDescription}"
+                               FontSize="16"
+                               TextColor="White"
+                               HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Mark Complete Button -->
+                <Button Text="✓ Mark Complete"
+                        Command="{Binding CompleteTaskCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"
+                        FontSize="18"
+                        HeightRequest="50"
+                        CornerRadius="8" />
+
+                <!-- Task Details Section -->
+                <Frame BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
+                       Padding="16"
+                       CornerRadius="8">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Details"
+                               FontSize="18"
+                               FontAttributes="Bold" />
+                        
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="16" RowSpacing="8">
+                            <Label Text="Category:"
+                                   TextColor="{StaticResource Gray500}" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding CategoryName}" />
+                            
+                            <Label Grid.Row="1"
+                                   Text="Frequency:"
+                                   TextColor="{StaticResource Gray500}" />
+                            <Label Grid.Row="1"
+                                   Grid.Column="1"
+                                   Text="{Binding FrequencyDescription}" />
+                            
+                            <Label Grid.Row="2"
+                                   Text="Reminder:"
+                                   TextColor="{StaticResource Gray500}" />
+                            <Label Grid.Row="2"
+                                   Grid.Column="1"
+                                   Text="{Binding IsReminderEnabled, StringFormat='{0:Enabled;Enabled;Disabled}'}" />
+                            
+                            <Label Grid.Row="3"
+                                   Text="Last Done:"
+                                   TextColor="{StaticResource Gray500}" />
+                            <Label Grid.Row="3"
+                                   Grid.Column="1"
+                                   Text="{Binding LastCompletedDate, StringFormat='{0:MMM d, yyyy}', TargetNullValue='Never'}" />
+                            
+                            <Label Grid.Row="4"
+                                   Text="Next Due:"
+                                   TextColor="{StaticResource Gray500}" />
+                            <Label Grid.Row="4"
+                                   Grid.Column="1"
+                                   Text="{Binding DueDate, StringFormat='{0:MMM d, yyyy}', TargetNullValue='Complete to set'}" />
+                        </Grid>
+                        
+                        <!-- Description -->
+                        <VerticalStackLayout IsVisible="{Binding Description, Converter={StaticResource IsNotNullOrEmptyConverter}}"
+                                             Spacing="4">
+                            <Label Text="Notes:"
+                                   TextColor="{StaticResource Gray500}" />
+                            <Label Text="{Binding Description}" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Completion History Section -->
+                <Frame BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
+                       Padding="16"
+                       CornerRadius="8">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Completion History"
+                               FontSize="18"
+                               FontAttributes="Bold" />
+                        
+                        <CollectionView ItemsSource="{Binding CompletionHistory}"
+                                        EmptyView="No completions recorded yet.">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:TaskLog">
+                                    <SwipeView>
+                                        <SwipeView.RightItems>
+                                            <SwipeItems>
+                                                <SwipeItem Text="Delete"
+                                                           BackgroundColor="Red"
+                                                           Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TaskDetailViewModel}}, Path=DeleteLogCommand}"
+                                                           CommandParameter="{Binding .}" />
+                                            </SwipeItems>
+                                        </SwipeView.RightItems>
+                                        <Grid Padding="0,8" ColumnDefinitions="Auto,*,Auto">
+                                            <Label Text="✓"
+                                                   TextColor="Green"
+                                                   FontSize="16"
+                                                   VerticalOptions="Center" />
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding CompletedDate, StringFormat='{0:dddd, MMM d, yyyy}'}"
+                                                   VerticalOptions="Center"
+                                                   Padding="8,0" />
+                                            <Label Grid.Column="2"
+                                                   Text="{Binding CompletedDate, StringFormat='{0:h:mm tt}'}"
+                                                   TextColor="{StaticResource Gray500}"
+                                                   VerticalOptions="Center" />
+                                        </Grid>
+                                    </SwipeView>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Frame>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

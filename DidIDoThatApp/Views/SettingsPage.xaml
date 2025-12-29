@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:DidIDoThatApp.ViewModels"
+             x:Class="DidIDoThatApp.Views.SettingsPage"
+             x:DataType="viewmodels:SettingsViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
+
+            <!-- Notifications Section -->
+            <Frame BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
+                   Padding="16"
+                   CornerRadius="8">
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="Notifications"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+                    
+                    <!-- Permission Status -->
+                    <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasNotificationPermission, Converter={StaticResource InvertedBoolConverter}}">
+                        <VerticalStackLayout>
+                            <Label Text="Permission Required"
+                                   FontSize="14"
+                                   TextColor="Orange" />
+                            <Label Text="Allow notifications to receive task reminders"
+                                   FontSize="12"
+                                   TextColor="{StaticResource Gray500}" />
+                        </VerticalStackLayout>
+                        <Button Grid.Column="1"
+                                Text="Enable"
+                                Command="{Binding RequestNotificationPermissionCommand}"
+                                HeightRequest="36"
+                                Padding="16,0" />
+                    </Grid>
+                    
+                    <!-- Enable/Disable Notifications -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout>
+                            <Label Text="Enable Notifications"
+                                   FontSize="14" />
+                            <Label Text="Receive reminders when tasks are due"
+                                   FontSize="12"
+                                   TextColor="{StaticResource Gray500}" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding NotificationsEnabled}"
+                                VerticalOptions="Center" />
+                    </Grid>
+
+                    <!-- Default Lead Time -->
+                    <VerticalStackLayout Spacing="4" IsVisible="{Binding NotificationsEnabled}">
+                        <Label Text="Default Reminder Lead Time"
+                               FontSize="14" />
+                        <Label Text="How many days before due date to notify"
+                               FontSize="12"
+                               TextColor="{StaticResource Gray500}" />
+                        <Picker ItemsSource="{Binding LeadTimeOptions}"
+                                SelectedItem="{Binding DefaultReminderLeadTimeDays}">
+                            <Picker.ItemDisplayBinding>
+                                <Binding StringFormat="{}{0} days before due" />
+                            </Picker.ItemDisplayBinding>
+                        </Picker>
+                    </VerticalStackLayout>
+
+                    <!-- Open System Settings -->
+                    <Button Text="Open System Settings"
+                            Command="{Binding OpenSystemNotificationSettingsCommand}"
+                            BackgroundColor="{StaticResource Gray200}"
+                            TextColor="{StaticResource Gray900}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Data Section -->
+            <Frame BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
+                   Padding="16"
+                   CornerRadius="8">
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="Data"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+                    
+                    <Button Text="Export Data (JSON)"
+                            Command="{Binding ExportDataCommand}"
+                            BackgroundColor="{StaticResource Gray200}"
+                            TextColor="{StaticResource Gray900}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- About Section -->
+            <Frame BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
+                   Padding="16"
+                   CornerRadius="8">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="About"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+                    
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Version"
+                               TextColor="{StaticResource Gray500}" />
+                        <Label Grid.Column="1"
+                               Text="{Binding AppVersion}" />
+                    </Grid>
+                    
+                    <Label Text="Did I Do That?"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           Margin="0,16,0,0" />
+                    <Label Text="A simple app to track recurring maintenance tasks."
+                           FontSize="12"
+                           TextColor="{StaticResource Gray500}"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Frame>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

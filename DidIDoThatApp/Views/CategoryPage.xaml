@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:DidIDoThatApp.ViewModels"
+             x:Class="DidIDoThatApp.Views.CategoryPage"
+             x:DataType="viewmodels:CategoryViewModel"
+             Title="{Binding Title}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Add"
+                     Command="{Binding StartAddCategoryCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <RefreshView Command="{Binding LoadDataCommand}"
+                 IsRefreshing="{Binding IsBusy}">
+        <VerticalStackLayout>
+
+            <!-- Add Category Form -->
+            <Frame IsVisible="{Binding IsAddingCategory}"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+                   Padding="16"
+                   Margin="16,16,16,0"
+                   CornerRadius="8">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="New Category"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Entry Text="{Binding NewCategoryIcon}"
+                               Placeholder="Icon"
+                               WidthRequest="60"
+                               HorizontalTextAlignment="Center" />
+                        <Entry Grid.Column="1"
+                               Text="{Binding NewCategoryName}"
+                               Placeholder="Category name" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Button Text="Cancel"
+                                Command="{Binding CancelAddCategoryCommand}"
+                                BackgroundColor="{StaticResource Gray300}"
+                                TextColor="{StaticResource Gray900}" />
+                        <Button Grid.Column="1"
+                                Text="Save"
+                                Command="{Binding SaveNewCategoryCommand}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Category List -->
+            <CollectionView ItemsSource="{Binding Categories}"
+                            Margin="16">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="viewmodels:CategoryItemViewModel">
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="Edit"
+                                               BackgroundColor="{StaticResource Primary}"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:CategoryViewModel}}, Path=StartEditCategoryCommand}"
+                                               CommandParameter="{Binding .}" />
+                                    <SwipeItem Text="Delete"
+                                               BackgroundColor="Red"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:CategoryViewModel}}, Path=DeleteCategoryCommand}"
+                                               CommandParameter="{Binding .}"
+                                               IsEnabled="{Binding IsDefault, Converter={StaticResource InvertedBoolConverter}}" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+                            <Frame BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
+                                   Padding="16"
+                                   Margin="0,4"
+                                   CornerRadius="8">
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                    <Label Text="{Binding Icon}"
+                                           FontSize="28"
+                                           VerticalOptions="Center" />
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Name}"
+                                               FontSize="16"
+                                               FontAttributes="Bold" />
+                                        <Label Text="{Binding TaskCountText}"
+                                               FontSize="12"
+                                               TextColor="{StaticResource Gray500}" />
+                                    </VerticalStackLayout>
+                                    <HorizontalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                                        <Label Text="Default"
+                                               FontSize="10"
+                                               TextColor="{StaticResource Gray500}"
+                                               BackgroundColor="{StaticResource Gray200}"
+                                               Padding="6,2"
+                                               IsVisible="{Binding IsDefault}" />
+                                        <Label Text="›"
+                                               FontSize="20"
+                                               TextColor="{StaticResource Gray400}" />
+                                    </HorizontalStackLayout>
+                                </Grid>
+                            </Frame>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Edit Category Overlay -->
+            <Frame IsVisible="{Binding EditingCategory, Converter={StaticResource IsNotNullConverter}}"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+                   Padding="16"
+                   Margin="16"
+                   CornerRadius="8">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Edit Category"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Entry Text="{Binding EditCategoryIcon}"
+                               Placeholder="Icon"
+                               WidthRequest="60"
+                               HorizontalTextAlignment="Center" />
+                        <Entry Grid.Column="1"
+                               Text="{Binding EditCategoryName}"
+                               Placeholder="Category name" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Button Text="Cancel"
+                                Command="{Binding CancelEditCategoryCommand}"
+                                BackgroundColor="{StaticResource Gray300}"
+                                TextColor="{StaticResource Gray900}" />
+                        <Button Grid.Column="1"
+                                Text="Save"
+                                Command="{Binding SaveEditCategoryCommand}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+        </VerticalStackLayout>
+    </RefreshView>
+
+</ContentPage>

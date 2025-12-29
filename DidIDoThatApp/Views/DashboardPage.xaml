@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:DidIDoThatApp.ViewModels"
+             x:Class="DidIDoThatApp.Views.DashboardPage"
+             x:DataType="viewmodels:DashboardViewModel"
+             Title="{Binding Title}">
+
+    <RefreshView Command="{Binding LoadDataCommand}"
+                 IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="16">
+
+                <!-- Overdue Tasks Section -->
+                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource ErrorLight}, Dark={StaticResource ErrorDark}}"
+                       Padding="12"
+                       CornerRadius="8"
+                       IsVisible="{Binding HasOverdueTasks}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="⚠️ Overdue"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="White" />
+                        <CollectionView ItemsSource="{Binding OverdueTasks}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="viewmodels:TaskItemViewModel">
+                                    <SwipeView>
+                                        <SwipeView.RightItems>
+                                            <SwipeItems>
+                                                <SwipeItem Text="Complete"
+                                                           BackgroundColor="Green"
+                                                           Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DashboardViewModel}}, Path=CompleteTaskCommand}"
+                                                           CommandParameter="{Binding .}" />
+                                            </SwipeItems>
+                                        </SwipeView.RightItems>
+                                        <Frame BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
+                                               Padding="12"
+                                               Margin="0,4"
+                                               CornerRadius="6">
+                                            <Frame.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DashboardViewModel}}, Path=NavigateToTaskDetailCommand}"
+                                                                      CommandParameter="{Binding .}" />
+                                            </Frame.GestureRecognizers>
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <VerticalStackLayout>
+                                                    <Label Text="{Binding Name}"
+                                                           FontSize="16"
+                                                           FontAttributes="Bold" />
+                                                    <Label Text="{Binding CategoryName}"
+                                                           FontSize="12"
+                                                           TextColor="{StaticResource Gray500}" />
+                                                    <Label Text="{Binding StatusDescription}"
+                                                           FontSize="12"
+                                                           TextColor="Red" />
+                                                </VerticalStackLayout>
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding CategoryIcon}"
+                                                       FontSize="24"
+                                                       VerticalOptions="Center" />
+                                            </Grid>
+                                        </Frame>
+                                    </SwipeView>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Due Soon Section -->
+                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource WarningLight}, Dark={StaticResource WarningDark}}"
+                       Padding="12"
+                       CornerRadius="8"
+                       IsVisible="{Binding HasDueSoonTasks}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="⏰ Due Soon"
+                               FontSize="18"
+                               FontAttributes="Bold" />
+                        <CollectionView ItemsSource="{Binding DueSoonTasks}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="viewmodels:TaskItemViewModel">
+                                    <SwipeView>
+                                        <SwipeView.RightItems>
+                                            <SwipeItems>
+                                                <SwipeItem Text="Complete"
+                                                           BackgroundColor="Green"
+                                                           Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DashboardViewModel}}, Path=CompleteTaskCommand}"
+                                                           CommandParameter="{Binding .}" />
+                                            </SwipeItems>
+                                        </SwipeView.RightItems>
+                                        <Frame BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
+                                               Padding="12"
+                                               Margin="0,4"
+                                               CornerRadius="6">
+                                            <Frame.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DashboardViewModel}}, Path=NavigateToTaskDetailCommand}"
+                                                                      CommandParameter="{Binding .}" />
+                                            </Frame.GestureRecognizers>
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <VerticalStackLayout>
+                                                    <Label Text="{Binding Name}"
+                                                           FontSize="16"
+                                                           FontAttributes="Bold" />
+                                                    <Label Text="{Binding CategoryName}"
+                                                           FontSize="12"
+                                                           TextColor="{StaticResource Gray500}" />
+                                                    <Label Text="{Binding StatusDescription}"
+                                                           FontSize="12"
+                                                           TextColor="Orange" />
+                                                </VerticalStackLayout>
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding CategoryIcon}"
+                                                       FontSize="24"
+                                                       VerticalOptions="Center" />
+                                            </Grid>
+                                        </Frame>
+                                    </SwipeView>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Recently Completed Section -->
+                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+                       Padding="12"
+                       CornerRadius="8"
+                       IsVisible="{Binding HasRecentlyCompletedTasks}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="✅ Recently Completed"
+                               FontSize="18"
+                               FontAttributes="Bold" />
+                        <CollectionView ItemsSource="{Binding RecentlyCompletedTasks}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="viewmodels:TaskItemViewModel">
+                                    <Frame BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
+                                           Padding="12"
+                                           Margin="0,4"
+                                           CornerRadius="6">
+                                        <Frame.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DashboardViewModel}}, Path=NavigateToTaskDetailCommand}"
+                                                                  CommandParameter="{Binding .}" />
+                                        </Frame.GestureRecognizers>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <VerticalStackLayout>
+                                                <Label Text="{Binding Name}"
+                                                       FontSize="16"
+                                                       FontAttributes="Bold" />
+                                                <Label Text="{Binding CategoryName}"
+                                                       FontSize="12"
+                                                       TextColor="{StaticResource Gray500}" />
+                                                <Label Text="{Binding StatusDescription}"
+                                                       FontSize="12"
+                                                       TextColor="Green" />
+                                            </VerticalStackLayout>
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding CategoryIcon}"
+                                                   FontSize="24"
+                                                   VerticalOptions="Center" />
+                                        </Grid>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Empty State -->
+                <VerticalStackLayout IsVisible="{Binding HasNoTasks}"
+                                     VerticalOptions="CenterAndExpand"
+                                     HorizontalOptions="Center"
+                                     Spacing="16"
+                                     Padding="32">
+                    <Label Text="🎉"
+                           FontSize="64"
+                           HorizontalOptions="Center" />
+                    <Label Text="You're all caught up!"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center" />
+                    <Label Text="No tasks are overdue or due soon."
+                           FontSize="14"
+                           TextColor="{StaticResource Gray500}"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>
