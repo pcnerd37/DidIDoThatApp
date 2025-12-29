@@ -20,9 +20,9 @@
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="7.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
     <!-- Exclude the resizetizer buildtransitive assets -->
-    <PackageReference Include="Microsoft.Maui.Resizetizer" Version="10.0.0">
+    <PackageReference Include="Microsoft.Maui.Resizetizer" Version="$(MauiVersion)">
       <IncludeAssets>none</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
       <ExcludeAssets>runtime;compile;build;native;contentfiles;analyzers;buildtransitive</ExcludeAssets>
