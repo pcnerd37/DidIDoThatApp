@@ -1,7 +1,12 @@
 namespace DidIDoThatApp.Services.Interfaces;
 
 /// <summary>
-/// Service for exporting app data.
+/// Result of an import operation.
+/// </summary>
+public record ImportResult(bool Success, string Message, int CategoriesImported = 0, int TasksImported = 0, int LogsImported = 0);
+
+/// <summary>
+/// Service for exporting and importing app data.
 /// </summary>
 public interface IExportService
 {
@@ -10,4 +15,10 @@ public interface IExportService
     /// </summary>
     /// <returns>True if export was successful, false otherwise.</returns>
     Task<bool> ExportDataAsJsonAsync();
+
+    /// <summary>
+    /// Imports app data from a JSON file selected by the user.
+    /// </summary>
+    /// <returns>Result containing success status and details about imported items.</returns>
+    Task<ImportResult> ImportDataFromJsonAsync();
 }

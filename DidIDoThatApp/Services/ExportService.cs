@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using DidIDoThatApp.Data;
+using DidIDoThatApp.Models;
+using DidIDoThatApp.Models.Enums;
 using DidIDoThatApp.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -182,5 +184,197 @@ public class ExportService : IExportService
             System.Diagnostics.Debug.WriteLine($"Export failed: {ex}");
             return false;
         }
+    }
+
+    /// <summary>
+    /// Deserializes JSON string to ExportData object.
+    /// This method is public for testability.
+    /// </summary>
+    public static ExportData? DeserializeExportData(string json)
+    {
+        try
+        {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                PropertyNameCaseInsensitive = true
+            };
+            return JsonSerializer.Deserialize<ExportData>(json, jsonOptions);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<ImportResult> ImportDataFromJsonAsync()
+    {
+        try
+        {
+            // Let user pick a JSON file
+            var fileResult = await FilePicker.PickAsync(new PickOptions
+            {
+                PickerTitle = "Select Did I Do That? Export File",
+                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    { DevicePlatform.Android, new[] { "application/json" } },
+                    { DevicePlatform.iOS, new[] { "public.json" } },
+                    { DevicePlatform.WinUI, new[] { ".json" } },
+                    { DevicePlatform.MacCatalyst, new[] { "public.json" } }
+                })
+            });
+
+            if (fileResult == null)
+            {
+                return new ImportResult(false, "No file selected.");
+            }
+
+            // Read the file
+            using var stream = await fileResult.OpenReadAsync();
+            using var reader = new StreamReader(stream);
+            var json = await reader.ReadToEndAsync();
+
+            // Deserialize
+            var exportData = DeserializeExportData(json);
+            if (exportData == null)
+            {
+                return new ImportResult(false, "Invalid file format. Could not parse the export file.");
+            }
+
+            // Validate basic structure
+            if (exportData.Categories == null || exportData.Tasks == null || exportData.TaskLogs == null)
+            {
+                return new ImportResult(false, "Invalid file format. Missing required data sections.");
+            }
+
+            // Import data
+            return await ImportDataAsync(exportData);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Import failed: {ex}");
+            return new ImportResult(false, $"Import failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Imports the export data into the database.
+    /// Merges with existing data - skips items that already exist (by ID).
+    /// </summary>
+    private async Task<ImportResult> ImportDataAsync(ExportData exportData)
+    {
+        int categoriesImported = 0;
+        int tasksImported = 0;
+        int logsImported = 0;
+
+        // Get existing IDs to avoid duplicates
+        var existingCategoryIds = await _context.Categories.Select(c => c.Id).ToListAsync();
+        var existingTaskIds = await _context.Tasks.Select(t => t.Id).ToListAsync();
+        var existingLogIds = await _context.TaskLogs.Select(l => l.Id).ToListAsync();
+
+        // Import categories first (tasks depend on them)
+        foreach (var categoryExport in exportData.Categories)
+        {
+            if (existingCategoryIds.Contains(categoryExport.Id))
+                continue;
+
+            var category = new Category
+            {
+                Id = categoryExport.Id,
+                Name = categoryExport.Name,
+                Icon = categoryExport.Icon,
+                CreatedDate = categoryExport.CreatedDate,
+                IsDefault = categoryExport.IsDefault
+            };
+
+            _context.Categories.Add(category);
+            categoriesImported++;
+        }
+
+        // Save categories first so foreign key constraints work
+        if (categoriesImported > 0)
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        // Get updated category list for validation
+        var allCategoryIds = await _context.Categories.Select(c => c.Id).ToListAsync();
+
+        // Import tasks
+        foreach (var taskExport in exportData.Tasks)
+        {
+            if (existingTaskIds.Contains(taskExport.Id))
+                continue;
+
+            // Skip if the category doesn't exist
+            if (!allCategoryIds.Contains(taskExport.CategoryId))
+                continue;
+
+            if (!Enum.TryParse<FrequencyUnit>(taskExport.FrequencyUnit, true, out var frequencyUnit))
+            {
+                frequencyUnit = FrequencyUnit.Days;
+            }
+
+            var task = new TaskItem
+            {
+                Id = taskExport.Id,
+                CategoryId = taskExport.CategoryId,
+                Name = taskExport.Name,
+                Description = taskExport.Description,
+                FrequencyValue = taskExport.FrequencyValue,
+                FrequencyUnit = frequencyUnit,
+                IsReminderEnabled = taskExport.IsReminderEnabled,
+                CreatedDate = taskExport.CreatedDate
+            };
+
+            _context.Tasks.Add(task);
+            tasksImported++;
+        }
+
+        // Save tasks before logs
+        if (tasksImported > 0)
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        // Get updated task list for validation
+        var allTaskIds = await _context.Tasks.Select(t => t.Id).ToListAsync();
+
+        // Import task logs
+        foreach (var logExport in exportData.TaskLogs)
+        {
+            if (existingLogIds.Contains(logExport.Id))
+                continue;
+
+            // Skip if the task doesn't exist
+            if (!allTaskIds.Contains(logExport.TaskItemId))
+                continue;
+
+            var log = new TaskLog
+            {
+                Id = logExport.Id,
+                TaskItemId = logExport.TaskItemId,
+                CompletedDate = logExport.CompletedDate,
+                Notes = logExport.Notes
+            };
+
+            _context.TaskLogs.Add(log);
+            logsImported++;
+        }
+
+        // Save logs
+        if (logsImported > 0)
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        var message = $"Successfully imported {categoriesImported} categories, {tasksImported} tasks, and {logsImported} completion records.";
+        if (categoriesImported == 0 && tasksImported == 0 && logsImported == 0)
+        {
+            message = "No new data to import. All items already exist in the app.";
+        }
+
+        return new ImportResult(true, message, categoriesImported, tasksImported, logsImported);
     }
 }

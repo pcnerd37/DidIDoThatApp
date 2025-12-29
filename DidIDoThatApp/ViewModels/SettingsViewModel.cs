@@ -129,4 +129,34 @@ public partial class SettingsViewModel : BaseViewModel
             }
         });
     }
+
+    [RelayCommand]
+    private async Task ImportDataAsync()
+    {
+        // Confirm with the user
+        var confirm = await Shell.Current.DisplayAlert(
+            "Import Data",
+            "This will import data from a previously exported file. Existing data will be preserved - only new items will be added.\n\nContinue?",
+            "Import",
+            "Cancel");
+
+        if (!confirm)
+            return;
+
+        await ExecuteAsync(async () =>
+        {
+            var result = await _exportService.ImportDataFromJsonAsync();
+            
+            await Shell.Current.DisplayAlert(
+                result.Success ? "Import Complete" : "Import Failed",
+                result.Message,
+                "OK");
+
+            // Invalidate cache if anything was imported
+            if (result.Success && (result.CategoriesImported > 0 || result.TasksImported > 0 || result.LogsImported > 0))
+            {
+                App.DataPrefetchService?.InvalidateCache();
+            }
+        });
+    }
 }

@@ -3,6 +3,7 @@ using DidIDoThatApp.Data;
 using DidIDoThatApp.Models;
 using DidIDoThatApp.Models.Enums;
 using DidIDoThatApp.Services;
+using DidIDoThatApp.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace DidIDoThatApp.Tests.Services;
@@ -463,6 +464,646 @@ public class ExportServiceTests : IDisposable
         json.Should().Contain("\"frequencyValue\": 3");
         json.Should().Contain("\"frequencyUnit\": \"Months\"");
         json.Should().Contain("\"notes\": \"Used MERV 13 filter\"");
+    }
+
+    #endregion
+
+    #region DeserializeExportData Tests
+
+    [Fact]
+    public void DeserializeExportData_WithValidJson_ReturnsExportData()
+    {
+        // Arrange
+        var json = """
+        {
+            "exportedAt": "2025-01-15T12:00:00Z",
+            "appVersion": "1.0.0",
+            "categories": [
+                {
+                    "id": "11111111-1111-1111-1111-111111111111",
+                    "name": "Home",
+                    "icon": "🏠",
+                    "createdDate": "2025-01-01T00:00:00Z",
+                    "isDefault": true
+                }
+            ],
+            "tasks": [],
+            "taskLogs": []
+        }
+        """;
+
+        // Act
+        var result = ExportService.DeserializeExportData(json);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.AppVersion.Should().Be("1.0.0");
+        result.Categories.Should().HaveCount(1);
+        result.Categories[0].Name.Should().Be("Home");
+        result.Categories[0].Icon.Should().Be("🏠");
+        result.Categories[0].IsDefault.Should().BeTrue();
+    }
+
+    [Fact]
+    public void DeserializeExportData_WithInvalidJson_ReturnsNull()
+    {
+        // Arrange
+        var json = "{ this is not valid json }";
+
+        // Act
+        var result = ExportService.DeserializeExportData(json);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void DeserializeExportData_IsCaseInsensitive()
+    {
+        // Arrange - Use PascalCase instead of camelCase
+        var json = """
+        {
+            "ExportedAt": "2025-01-15T12:00:00Z",
+            "AppVersion": "1.0.0",
+            "Categories": [],
+            "Tasks": [],
+            "TaskLogs": []
+        }
+        """;
+
+        // Act
+        var result = ExportService.DeserializeExportData(json);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.AppVersion.Should().Be("1.0.0");
+    }
+
+    [Fact]
+    public void DeserializeExportData_WithCompleteData_ParsesAllFields()
+    {
+        // Arrange
+        var categoryId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var logId = Guid.NewGuid();
+
+        var json = $$"""
+        {
+            "exportedAt": "2025-01-15T12:00:00Z",
+            "appVersion": "1.0.0 (5)",
+            "categories": [
+                {
+                    "id": "{{categoryId}}",
+                    "name": "Car Maintenance",
+                    "icon": "🚗",
+                    "createdDate": "2025-01-01T00:00:00Z",
+                    "isDefault": false
+                }
+            ],
+            "tasks": [
+                {
+                    "id": "{{taskId}}",
+                    "categoryId": "{{categoryId}}",
+                    "name": "Oil Change",
+                    "description": "Change engine oil every 5000 miles",
+                    "frequencyValue": 90,
+                    "frequencyUnit": "Days",
+                    "isReminderEnabled": true,
+                    "createdDate": "2025-01-05T00:00:00Z"
+                }
+            ],
+            "taskLogs": [
+                {
+                    "id": "{{logId}}",
+                    "taskItemId": "{{taskId}}",
+                    "completedDate": "2025-01-10T14:30:00Z",
+                    "notes": "Used synthetic oil"
+                }
+            ]
+        }
+        """;
+
+        // Act
+        var result = ExportService.DeserializeExportData(json);
+
+        // Assert
+        result.Should().NotBeNull();
+        
+        result!.Categories.Should().HaveCount(1);
+        result.Categories[0].Id.Should().Be(categoryId);
+        result.Categories[0].Name.Should().Be("Car Maintenance");
+        
+        result.Tasks.Should().HaveCount(1);
+        result.Tasks[0].Id.Should().Be(taskId);
+        result.Tasks[0].CategoryId.Should().Be(categoryId);
+        result.Tasks[0].Name.Should().Be("Oil Change");
+        result.Tasks[0].Description.Should().Be("Change engine oil every 5000 miles");
+        result.Tasks[0].FrequencyValue.Should().Be(90);
+        result.Tasks[0].FrequencyUnit.Should().Be("Days");
+        result.Tasks[0].IsReminderEnabled.Should().BeTrue();
+        
+        result.TaskLogs.Should().HaveCount(1);
+        result.TaskLogs[0].Id.Should().Be(logId);
+        result.TaskLogs[0].TaskItemId.Should().Be(taskId);
+        result.TaskLogs[0].Notes.Should().Be("Used synthetic oil");
+    }
+
+    #endregion
+
+    #region Import Tests (using ImportDataAsync via reflection or public wrapper)
+
+    [Fact]
+    public async Task Import_WithNewCategories_AddsCategoriesToDatabase()
+    {
+        // Arrange
+        var exportData = new ExportData
+        {
+            ExportedAt = DateTime.UtcNow,
+            AppVersion = "1.0.0",
+            Categories =
+            [
+                new CategoryExport
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Imported Category",
+                    Icon = "📦",
+                    CreatedDate = DateTime.UtcNow,
+                    IsDefault = false
+                }
+            ],
+            Tasks = [],
+            TaskLogs = []
+        };
+
+        // Serialize and deserialize to simulate real import
+        var json = ExportService.SerializeExportData(exportData);
+        var parsed = ExportService.DeserializeExportData(json);
+
+        // Act - Use the private import method via a test wrapper
+        var result = await ImportDataViaServiceAsync(parsed!);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.CategoriesImported.Should().Be(1);
+        
+        var categories = await _context.Categories.ToListAsync();
+        categories.Should().HaveCount(1);
+        categories[0].Name.Should().Be("Imported Category");
+    }
+
+    [Fact]
+    public async Task Import_WithExistingCategory_SkipsCategory()
+    {
+        // Arrange - Add existing category
+        var existingId = Guid.NewGuid();
+        _context.Categories.Add(new Category
+        {
+            Id = existingId,
+            Name = "Existing",
+            CreatedDate = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
+
+        var exportData = new ExportData
+        {
+            ExportedAt = DateTime.UtcNow,
+            AppVersion = "1.0.0",
+            Categories =
+            [
+                new CategoryExport
+                {
+                    Id = existingId, // Same ID as existing
+                    Name = "Different Name",
+                    CreatedDate = DateTime.UtcNow,
+                    IsDefault = false
+                }
+            ],
+            Tasks = [],
+            TaskLogs = []
+        };
+
+        var json = ExportService.SerializeExportData(exportData);
+        var parsed = ExportService.DeserializeExportData(json);
+
+        // Act
+        var result = await ImportDataViaServiceAsync(parsed!);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.CategoriesImported.Should().Be(0);
+        
+        var categories = await _context.Categories.ToListAsync();
+        categories.Should().HaveCount(1);
+        categories[0].Name.Should().Be("Existing"); // Not overwritten
+    }
+
+    [Fact]
+    public async Task Import_WithNewTask_AddsTaskToDatabase()
+    {
+        // Arrange - Need existing category for the task
+        var categoryId = Guid.NewGuid();
+        _context.Categories.Add(new Category
+        {
+            Id = categoryId,
+            Name = "Home",
+            CreatedDate = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
+
+        var exportData = new ExportData
+        {
+            ExportedAt = DateTime.UtcNow,
+            AppVersion = "1.0.0",
+            Categories = [], // Category already exists
+            Tasks =
+            [
+                new TaskExport
+                {
+                    Id = Guid.NewGuid(),
+                    CategoryId = categoryId,
+                    Name = "Imported Task",
+                    Description = "Test description",
+                    FrequencyValue = 30,
+                    FrequencyUnit = "Days",
+                    IsReminderEnabled = true,
+                    CreatedDate = DateTime.UtcNow
+                }
+            ],
+            TaskLogs = []
+        };
+
+        var json = ExportService.SerializeExportData(exportData);
+        var parsed = ExportService.DeserializeExportData(json);
+
+        // Act
+        var result = await ImportDataViaServiceAsync(parsed!);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.TasksImported.Should().Be(1);
+        
+        var tasks = await _context.Tasks.ToListAsync();
+        tasks.Should().HaveCount(1);
+        tasks[0].Name.Should().Be("Imported Task");
+        tasks[0].FrequencyValue.Should().Be(30);
+        tasks[0].FrequencyUnit.Should().Be(FrequencyUnit.Days);
+    }
+
+    [Fact]
+    public async Task Import_WithTaskForMissingCategory_SkipsTask()
+    {
+        // Arrange - No category exists
+        var exportData = new ExportData
+        {
+            ExportedAt = DateTime.UtcNow,
+            AppVersion = "1.0.0",
+            Categories = [],
+            Tasks =
+            [
+                new TaskExport
+                {
+                    Id = Guid.NewGuid(),
+                    CategoryId = Guid.NewGuid(), // Non-existent category
+                    Name = "Orphan Task",
+                    FrequencyValue = 30,
+                    FrequencyUnit = "Days",
+                    CreatedDate = DateTime.UtcNow
+                }
+            ],
+            TaskLogs = []
+        };
+
+        var json = ExportService.SerializeExportData(exportData);
+        var parsed = ExportService.DeserializeExportData(json);
+
+        // Act
+        var result = await ImportDataViaServiceAsync(parsed!);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.TasksImported.Should().Be(0);
+        
+        var tasks = await _context.Tasks.ToListAsync();
+        tasks.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Import_WithNewTaskLog_AddsLogToDatabase()
+    {
+        // Arrange - Need existing category and task
+        var categoryId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        
+        _context.Categories.Add(new Category
+        {
+            Id = categoryId,
+            Name = "Home",
+            CreatedDate = DateTime.UtcNow
+        });
+        _context.Tasks.Add(new TaskItem
+        {
+            Id = taskId,
+            CategoryId = categoryId,
+            Name = "Existing Task",
+            FrequencyValue = 30,
+            FrequencyUnit = FrequencyUnit.Days,
+            CreatedDate = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
+
+        var exportData = new ExportData
+        {
+            ExportedAt = DateTime.UtcNow,
+            AppVersion = "1.0.0",
+            Categories = [],
+            Tasks = [],
+            TaskLogs =
+            [
+                new TaskLogExport
+                {
+                    Id = Guid.NewGuid(),
+                    TaskItemId = taskId,
+                    CompletedDate = DateTime.UtcNow.AddDays(-5),
+                    Notes = "Imported log entry"
+                }
+            ]
+        };
+
+        var json = ExportService.SerializeExportData(exportData);
+        var parsed = ExportService.DeserializeExportData(json);
+
+        // Act
+        var result = await ImportDataViaServiceAsync(parsed!);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.LogsImported.Should().Be(1);
+        
+        var logs = await _context.TaskLogs.ToListAsync();
+        logs.Should().HaveCount(1);
+        logs[0].Notes.Should().Be("Imported log entry");
+    }
+
+    [Fact]
+    public async Task Import_WithCompleteDataSet_ImportsAllEntities()
+    {
+        // Arrange - Full export with category, task, and log
+        var categoryId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var logId = Guid.NewGuid();
+
+        var exportData = new ExportData
+        {
+            ExportedAt = DateTime.UtcNow,
+            AppVersion = "1.0.0",
+            Categories =
+            [
+                new CategoryExport
+                {
+                    Id = categoryId,
+                    Name = "Full Import Test",
+                    Icon = "🧪",
+                    CreatedDate = DateTime.UtcNow,
+                    IsDefault = false
+                }
+            ],
+            Tasks =
+            [
+                new TaskExport
+                {
+                    Id = taskId,
+                    CategoryId = categoryId,
+                    Name = "Test Task",
+                    Description = "Full test",
+                    FrequencyValue = 7,
+                    FrequencyUnit = "Weeks",
+                    IsReminderEnabled = true,
+                    CreatedDate = DateTime.UtcNow
+                }
+            ],
+            TaskLogs =
+            [
+                new TaskLogExport
+                {
+                    Id = logId,
+                    TaskItemId = taskId,
+                    CompletedDate = DateTime.UtcNow.AddDays(-7),
+                    Notes = "First completion"
+                }
+            ]
+        };
+
+        var json = ExportService.SerializeExportData(exportData);
+        var parsed = ExportService.DeserializeExportData(json);
+
+        // Act
+        var result = await ImportDataViaServiceAsync(parsed!);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.CategoriesImported.Should().Be(1);
+        result.TasksImported.Should().Be(1);
+        result.LogsImported.Should().Be(1);
+        result.Message.Should().Contain("1 categories");
+        result.Message.Should().Contain("1 tasks");
+        result.Message.Should().Contain("1 completion records");
+    }
+
+    [Fact]
+    public async Task Import_WhenAllDataExists_ReturnsNoNewDataMessage()
+    {
+        // Arrange - Add data to database first
+        var categoryId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var logId = Guid.NewGuid();
+
+        _context.Categories.Add(new Category
+        {
+            Id = categoryId,
+            Name = "Existing",
+            CreatedDate = DateTime.UtcNow
+        });
+        _context.Tasks.Add(new TaskItem
+        {
+            Id = taskId,
+            CategoryId = categoryId,
+            Name = "Existing Task",
+            FrequencyValue = 30,
+            FrequencyUnit = FrequencyUnit.Days,
+            CreatedDate = DateTime.UtcNow
+        });
+        _context.TaskLogs.Add(new TaskLog
+        {
+            Id = logId,
+            TaskItemId = taskId,
+            CompletedDate = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
+
+        // Try to import the same IDs
+        var exportData = new ExportData
+        {
+            ExportedAt = DateTime.UtcNow,
+            AppVersion = "1.0.0",
+            Categories = [new CategoryExport { Id = categoryId, Name = "Different", CreatedDate = DateTime.UtcNow }],
+            Tasks = [new TaskExport { Id = taskId, CategoryId = categoryId, Name = "Different", FrequencyValue = 1, FrequencyUnit = "Days", CreatedDate = DateTime.UtcNow }],
+            TaskLogs = [new TaskLogExport { Id = logId, TaskItemId = taskId, CompletedDate = DateTime.UtcNow }]
+        };
+
+        var json = ExportService.SerializeExportData(exportData);
+        var parsed = ExportService.DeserializeExportData(json);
+
+        // Act
+        var result = await ImportDataViaServiceAsync(parsed!);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.CategoriesImported.Should().Be(0);
+        result.TasksImported.Should().Be(0);
+        result.LogsImported.Should().Be(0);
+        result.Message.Should().Contain("No new data to import");
+    }
+
+    [Fact]
+    public async Task Import_WithInvalidFrequencyUnit_DefaultsToDays()
+    {
+        // Arrange
+        var categoryId = Guid.NewGuid();
+        _context.Categories.Add(new Category
+        {
+            Id = categoryId,
+            Name = "Home",
+            CreatedDate = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
+
+        var exportData = new ExportData
+        {
+            ExportedAt = DateTime.UtcNow,
+            AppVersion = "1.0.0",
+            Categories = [],
+            Tasks =
+            [
+                new TaskExport
+                {
+                    Id = Guid.NewGuid(),
+                    CategoryId = categoryId,
+                    Name = "Task with Invalid Unit",
+                    FrequencyValue = 30,
+                    FrequencyUnit = "InvalidUnit", // Invalid
+                    CreatedDate = DateTime.UtcNow
+                }
+            ],
+            TaskLogs = []
+        };
+
+        var json = ExportService.SerializeExportData(exportData);
+        var parsed = ExportService.DeserializeExportData(json);
+
+        // Act
+        var result = await ImportDataViaServiceAsync(parsed!);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.TasksImported.Should().Be(1);
+        
+        var task = await _context.Tasks.FirstAsync();
+        task.FrequencyUnit.Should().Be(FrequencyUnit.Days); // Defaults to Days
+    }
+
+    /// <summary>
+    /// Helper to invoke the private ImportDataAsync method for testing.
+    /// In production, this is called by ImportDataFromJsonAsync after file picking.
+    /// </summary>
+    private async Task<ImportResult> ImportDataViaServiceAsync(ExportData exportData)
+    {
+        // Use reflection to call the private ImportDataAsync method
+        var methodInfo = typeof(ExportService).GetMethod("ImportDataAsync", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        
+        var task = (Task<ImportResult>)methodInfo!.Invoke(_sut, [exportData])!;
+        return await task;
+    }
+
+    #endregion
+
+    #region Round-Trip Tests
+
+    [Fact]
+    public async Task ExportThenImport_PreservesAllData()
+    {
+        // Arrange - Create complete dataset
+        var category = new Category
+        {
+            Id = Guid.NewGuid(),
+            Name = "Round Trip Test",
+            Icon = "🔄",
+            CreatedDate = DateTime.UtcNow,
+            IsDefault = false
+        };
+        _context.Categories.Add(category);
+
+        var task = new TaskItem
+        {
+            Id = Guid.NewGuid(),
+            CategoryId = category.Id,
+            Name = "Round Trip Task",
+            Description = "Testing full export/import cycle",
+            FrequencyValue = 14,
+            FrequencyUnit = FrequencyUnit.Days,
+            IsReminderEnabled = true,
+            CreatedDate = DateTime.UtcNow
+        };
+        _context.Tasks.Add(task);
+
+        var log = new TaskLog
+        {
+            Id = Guid.NewGuid(),
+            TaskItemId = task.Id,
+            CompletedDate = DateTime.UtcNow.AddDays(-7),
+            Notes = "Round trip log"
+        };
+        _context.TaskLogs.Add(log);
+        await _context.SaveChangesAsync();
+
+        // Act - Export
+        var exportData = await _sut.GatherExportDataAsync("1.0.0");
+        var json = ExportService.SerializeExportData(exportData);
+
+        // Clear database to simulate new device
+        _context.TaskLogs.RemoveRange(_context.TaskLogs);
+        _context.Tasks.RemoveRange(_context.Tasks);
+        _context.Categories.RemoveRange(_context.Categories);
+        await _context.SaveChangesAsync();
+
+        // Verify empty
+        (await _context.Categories.CountAsync()).Should().Be(0);
+
+        // Act - Import
+        var parsed = ExportService.DeserializeExportData(json);
+        var result = await ImportDataViaServiceAsync(parsed!);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.CategoriesImported.Should().Be(1);
+        result.TasksImported.Should().Be(1);
+        result.LogsImported.Should().Be(1);
+
+        // Verify data integrity
+        var importedCategory = await _context.Categories.FirstAsync();
+        importedCategory.Id.Should().Be(category.Id);
+        importedCategory.Name.Should().Be("Round Trip Test");
+        importedCategory.Icon.Should().Be("🔄");
+
+        var importedTask = await _context.Tasks.FirstAsync();
+        importedTask.Id.Should().Be(task.Id);
+        importedTask.Name.Should().Be("Round Trip Task");
+        importedTask.FrequencyValue.Should().Be(14);
+        importedTask.FrequencyUnit.Should().Be(FrequencyUnit.Days);
+
+        var importedLog = await _context.TaskLogs.FirstAsync();
+        importedLog.Id.Should().Be(log.Id);
+        importedLog.Notes.Should().Be("Round trip log");
     }
 
     #endregion

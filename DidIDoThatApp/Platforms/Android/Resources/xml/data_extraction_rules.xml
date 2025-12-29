@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Data extraction rules for Android 12+ (API 31+) -->
+<!-- Defines what data can be transferred to new devices and backed up to cloud -->
+<data-extraction-rules>
+    <!-- Cloud backup rules (Google Drive) -->
+    <cloud-backup>
+        <!-- Include the SQLite database -->
+        <include domain="database" path="." />
+        
+        <!-- Include shared preferences (app settings) -->
+        <include domain="sharedpref" path="." />
+        
+        <!-- Exclude cache files -->
+        <exclude domain="cache" path="." />
+    </cloud-backup>
+    
+    <!-- Device-to-device transfer rules -->
+    <device-transfer>
+        <!-- Include the SQLite database -->
+        <include domain="database" path="." />
+        
+        <!-- Include shared preferences (app settings) -->
+        <include domain="sharedpref" path="." />
+        
+        <!-- Exclude cache files -->
+        <exclude domain="cache" path="." />
+    </device-transfer>
+</data-extraction-rules>
