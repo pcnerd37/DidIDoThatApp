@@ -11,9 +11,6 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   CI_BUILD: true
-  # Android signing environment variables (values stored in GitHub Secrets)
-  ANDROID_SIGNING_KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
-  ANDROID_SIGNING_STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
 
 jobs:
   build:
@@ -52,11 +49,29 @@ jobs:
         name: test-results
         path: '**/test-results.trx'
 
+    - name: Decode and setup Android keystore
+      run: |
+        $encodedKeystore = "${{ secrets.ANDROID_KEYSTORE_BASE64 }}"
+        $keystoreBytes = [Convert]::FromBase64String($encodedKeystore)
+        [IO.File]::WriteAllBytes("${{ github.workspace }}/upload-keystore.jks", $keystoreBytes)
+
     - name: Build Android Release
-      run: dotnet build DidIDoThatApp/DidIDoThatApp.csproj -f net10.0-android -c Release
+      run: |
+        dotnet build DidIDoThatApp/DidIDoThatApp.csproj -f net10.0-android -c Release `
+        -p:AndroidSigningKeyStore="${{ github.workspace }}/upload-keystore.jks" `
+        -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} `
+        -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEY_PASSWORD }} `
+        -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
 
     - name: Publish Android App Bundle (AAB) for Google Play
-      run: dotnet publish DidIDoThatApp/DidIDoThatApp.csproj -f net10.0-android -c Release -p:AndroidPackageFormat=aab -o ./artifacts/android
+      run: |
+        dotnet publish DidIDoThatApp/DidIDoThatApp.csproj -f net10.0-android -c Release `
+        -p:AndroidPackageFormat=aab `
+        -p:AndroidSigningKeyStore="${{ github.workspace }}/upload-keystore.jks" `
+        -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} `
+        -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEY_PASSWORD }} `
+        -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} `
+        -o ./artifacts/android
 
     - name: Upload Android AAB artifacts
       uses: actions/upload-artifact@v4
