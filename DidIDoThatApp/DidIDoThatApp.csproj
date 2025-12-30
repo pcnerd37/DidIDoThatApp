@@ -48,8 +48,8 @@
 	<!-- Android signing configuration for Release builds -->
 	<PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
 		<AndroidKeyStore>true</AndroidKeyStore>
-		<AndroidSigningKeyStore>upload-keystore.jks</AndroidSigningKeyStore>
-		<AndroidSigningKeyAlias>upload</AndroidSigningKeyAlias>
+		<AndroidSigningKeyStore Condition="'$(AndroidSigningKeyStore)' == ''">upload-keystore.jks</AndroidSigningKeyStore>
+		<AndroidSigningKeyAlias Condition="'$(AndroidSigningKeyAlias)' == ''">upload</AndroidSigningKeyAlias>
 		<AndroidSigningKeyPass>$(ANDROID_SIGNING_KEY_PASS)</AndroidSigningKeyPass>
 		<AndroidSigningStorePass>$(ANDROID_SIGNING_STORE_PASS)</AndroidSigningStorePass>
 	</PropertyGroup>

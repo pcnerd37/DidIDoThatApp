@@ -62,5 +62,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: android-release-aab
-        path: ./artifacts/android/**/*-Signed.aab
+        path: ./artifacts/android/**/*.aab
         retention-days: 30
