@@ -124,6 +124,18 @@
                            TextColor="{StaticResource Gray500}"
                            HorizontalOptions="Center"
                            HorizontalTextAlignment="Center" />
+                    
+                    <!-- Privacy Policy Link -->
+                    <Label Text="Privacy Policy"
+                           FontSize="14"
+                           TextColor="{StaticResource Primary}"
+                           TextDecorations="Underline"
+                           HorizontalOptions="Center"
+                           Margin="0,8,0,0">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenPrivacyPolicyCommand}" />
+                        </Label.GestureRecognizers>
+                    </Label>
                 </VerticalStackLayout>
             </Frame>
 

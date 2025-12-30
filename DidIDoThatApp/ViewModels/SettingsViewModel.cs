@@ -159,4 +159,22 @@ public partial class SettingsViewModel : BaseViewModel
             }
         });
     }
+
+    [RelayCommand]
+    private async Task OpenPrivacyPolicyAsync()
+    {
+        try
+        {
+            // TODO: Update this URL to your actual GitHub Pages URL after setup
+            var privacyPolicyUrl = "https://pcnerd37.github.io/DidIDoThatApp/privacy-policy";
+            await Browser.OpenAsync(privacyPolicyUrl, BrowserLaunchMode.SystemPreferred);
+        }
+        catch
+        {
+            await Shell.Current.DisplayAlert(
+                "Unable to Open",
+                "Could not open the privacy policy. Please check your internet connection.",
+                "OK");
+        }
+    }
 }
