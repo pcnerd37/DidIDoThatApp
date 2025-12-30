@@ -30,7 +30,9 @@
 		<ApplicationId>com.companyname.dididothatapp</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<!-- Display version shown to users (e.g., "1.0.0") -->
+		<ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
+		<!-- Internal version code (must increment for each release) -->
 		<ApplicationVersion>1</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
@@ -41,6 +43,15 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+	</PropertyGroup>
+
+	<!-- Android signing configuration for Release builds -->
+	<PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
+		<AndroidKeyStore>true</AndroidKeyStore>
+		<AndroidSigningKeyStore>upload-keystore.jks</AndroidSigningKeyStore>
+		<AndroidSigningKeyAlias>upload</AndroidSigningKeyAlias>
+		<AndroidSigningKeyPass>$(ANDROID_SIGNING_KEY_PASS)</AndroidSigningKeyPass>
+		<AndroidSigningStorePass>$(ANDROID_SIGNING_STORE_PASS)</AndroidSigningStorePass>
 	</PropertyGroup>
 
 	<ItemGroup>
