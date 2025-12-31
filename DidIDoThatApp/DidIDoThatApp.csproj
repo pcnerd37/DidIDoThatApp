@@ -50,8 +50,8 @@
 		<AndroidKeyStore>true</AndroidKeyStore>
 		<AndroidSigningKeyStore Condition="'$(AndroidSigningKeyStore)' == ''">upload-keystore.jks</AndroidSigningKeyStore>
 		<AndroidSigningKeyAlias Condition="'$(AndroidSigningKeyAlias)' == ''">upload</AndroidSigningKeyAlias>
-		<AndroidSigningKeyPass>$(ANDROID_SIGNING_KEY_PASS)</AndroidSigningKeyPass>
-		<AndroidSigningStorePass>$(ANDROID_SIGNING_STORE_PASS)</AndroidSigningStorePass>
+		<AndroidSigningKeyPass Condition="'$(ANDROID_SIGNING_KEY_PASS)' != ''">$(ANDROID_SIGNING_KEY_PASS)</AndroidSigningKeyPass>
+		<AndroidSigningStorePass Condition="'$(ANDROID_SIGNING_STORE_PASS)' != ''">$(ANDROID_SIGNING_STORE_PASS)</AndroidSigningStorePass>
 	</PropertyGroup>
 
 	<ItemGroup>
