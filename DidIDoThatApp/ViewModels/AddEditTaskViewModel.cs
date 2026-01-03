@@ -15,11 +15,13 @@ public partial class AddEditTaskViewModel : BaseViewModel
 {
     private readonly ITaskService _taskService;
     private readonly ICategoryService _categoryService;
+    private readonly IDataPrefetchService? _prefetchService;
 
     public AddEditTaskViewModel(ITaskService taskService, ICategoryService categoryService)
     {
         _taskService = taskService;
         _categoryService = categoryService;
+        _prefetchService = App.DataPrefetchService;
     }
 
     /// <summary>
@@ -177,8 +179,11 @@ public partial class AddEditTaskViewModel : BaseViewModel
                     IsReminderEnabled);
             }
 
-            await Shell.Current.GoToAsync("..");
+            _prefetchService?.InvalidateCache();
         });
+
+        // Navigate back after ExecuteAsync completes to ensure save is finished
+        await Shell.Current.GoToAsync("..");
     }
 
     [RelayCommand]

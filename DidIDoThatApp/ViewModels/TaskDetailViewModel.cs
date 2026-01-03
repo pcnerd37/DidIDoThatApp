@@ -16,11 +16,13 @@ public partial class TaskDetailViewModel : BaseViewModel
 {
     private readonly ITaskService _taskService;
     private readonly ITaskLogService _taskLogService;
+    private readonly IDataPrefetchService? _prefetchService;
 
     public TaskDetailViewModel(ITaskService taskService, ITaskLogService taskLogService)
     {
         _taskService = taskService;
         _taskLogService = taskLogService;
+        _prefetchService = App.DataPrefetchService;
         Title = "Task Details";
     }
 
@@ -185,8 +187,11 @@ public partial class TaskDetailViewModel : BaseViewModel
             await ExecuteAsync(async () =>
             {
                 await _taskService.DeleteTaskAsync(TaskId);
-                await Shell.Current.GoToAsync("..");
+                _prefetchService?.InvalidateCache();
             });
+
+            // Navigate back after ExecuteAsync completes to ensure deletion is finished
+            await Shell.Current.GoToAsync("..");
         }
     }
 
