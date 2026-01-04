@@ -24,7 +24,9 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Display name -->
-		<ApplicationTitle>Did I Do That?</ApplicationTitle>
+		<ApplicationTitle>Did I Do That</ApplicationTitle>
+		<!-- User-visible display name (may include punctuation) -->
+		<ApplicationDisplayName>Did I Do That?</ApplicationDisplayName>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.dididothatapp</ApplicationId>
