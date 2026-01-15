@@ -14,3 +14,4 @@
 # Android signing keystore (keep this safe, don't commit!)
 *.jks
 *.keystore
+DidIDoThatApp/DidIDoThatApp.csproj.user
