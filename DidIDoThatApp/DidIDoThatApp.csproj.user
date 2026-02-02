@@ -2,10 +2,14 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <IsFirstTimeProjectOpen>False</IsFirstTimeProjectOpen>
-    <ActiveDebugFramework>net10.0-android</ActiveDebugFramework>
-    <ActiveDebugProfile>Pixel 7 - API 36 (1) (Android 16.0 - API 36)</ActiveDebugProfile>
-    <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
-    <DefaultDevice>pixel_7_-_api_36_1</DefaultDevice>
+    <ActiveDebugFramework>net10.0-ios</ActiveDebugFramework>
+    <ActiveDebugProfile>iPhone 16e iOS 26.2</ActiveDebugProfile>
+    <SelectedPlatformGroup>Simulator</SelectedPlatformGroup>
+    <DefaultDevice>iPhone 16e iOS 26.2</DefaultDevice>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatformIdentifier)'=='iOS'">
+    <RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
+    <PlatformTarget>arm64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <None Update="App.xaml">
