@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<!-- 
@@ -35,7 +35,7 @@
 		<!-- Display version shown to users (e.g., "1.0.0") -->
 		<ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
 		<!-- Internal version code (must increment for each release) -->
-		<ApplicationVersion>3</ApplicationVersion>
+		<ApplicationVersion>4</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
@@ -54,6 +54,10 @@
 		<AndroidSigningKeyAlias Condition="'$(AndroidSigningKeyAlias)' == ''">upload</AndroidSigningKeyAlias>
 		<AndroidSigningKeyPass Condition="'$(ANDROID_SIGNING_KEY_PASS)' != ''">$(ANDROID_SIGNING_KEY_PASS)</AndroidSigningKeyPass>
 		<AndroidSigningStorePass Condition="'$(ANDROID_SIGNING_STORE_PASS)' != ''">$(ANDROID_SIGNING_STORE_PASS)</AndroidSigningStorePass>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)'=='net10.0-ios'">
+	  <ProvisioningType>manual</ProvisioningType>
+	  <CodesignKey>iPhone Distribution</CodesignKey>
 	</PropertyGroup>
 
 	<ItemGroup>

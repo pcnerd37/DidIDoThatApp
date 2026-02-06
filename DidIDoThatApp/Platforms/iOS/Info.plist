@@ -41,5 +41,10 @@
 	<array>
 		<string>com.dididothat.notificationrecalc</string>
 	</array>
+	<!-- Location usage descriptions (required by Apple even if not actively used) -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app does not use your location. This permission is requested due to third-party libraries.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app does not use your location. This permission is requested due to third-party libraries.</string>
 </dict>
 </plist>
