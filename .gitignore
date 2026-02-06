@@ -16,3 +16,5 @@
 *.jks
 *.keystore
 
+/DidIDoThatApp/bin
+/DidIDoThatApp/DidIDoThatApp.csproj.user
