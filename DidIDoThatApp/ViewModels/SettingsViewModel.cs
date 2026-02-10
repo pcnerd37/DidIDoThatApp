@@ -39,7 +39,7 @@ public partial class SettingsViewModel : BaseViewModel
     [ObservableProperty]
     private string _appVersion = string.Empty;
 
-    public int[] LeadTimeOptions => [1, 2, 3, 5, 7, 14];
+    public int[] LeadTimeOptions => new int[] { 1, 2, 3, 5, 7, 14 };
 
     [RelayCommand]
     private async Task LoadSettingsAsync()
