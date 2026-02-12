@@ -56,8 +56,9 @@
 		<AndroidSigningStorePass Condition="'$(ANDROID_SIGNING_STORE_PASS)' != ''">$(ANDROID_SIGNING_STORE_PASS)</AndroidSigningStorePass>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)'=='net10.0-ios'">
-	  <ProvisioningType>manual</ProvisioningType>
-	  <CodesignKey>iPhone Distribution</CodesignKey>
+		<ProvisioningType>manual</ProvisioningType>
+		<CodesignKey>Apple Distribution: JEREMY DANIEL BRAY (D4G7DCGKW9)</CodesignKey>
+		<CodesignProvision>DidIDoThat</CodesignProvision>
 	</PropertyGroup>
 
 	<ItemGroup>
