@@ -41,45 +41,73 @@ public partial class SettingsViewModel : BaseViewModel
 
     public int[] LeadTimeOptions => new int[] { 1, 2, 3, 5, 7, 14 };
 
+    private bool _isLoadingSettings;
+
     [RelayCommand]
     private async Task LoadSettingsAsync()
     {
         await ExecuteAsync(async () =>
         {
-            var settings = _settingsService.GetSettings();
-            NotificationsEnabled = settings.NotificationsEnabled;
-            DefaultReminderLeadTimeDays = settings.DefaultReminderLeadTimeDays;
-            HasNotificationPermission = await _notificationService.HasPermissionAsync();
-            AppVersion = $"{AppInfo.VersionString} ({AppInfo.BuildString})";
+            _isLoadingSettings = true;
+            try
+            {
+                var settings = _settingsService.GetSettings();
+                NotificationsEnabled = settings.NotificationsEnabled;
+                DefaultReminderLeadTimeDays = settings.DefaultReminderLeadTimeDays;
+                HasNotificationPermission = await _notificationService.HasPermissionAsync();
+                AppVersion = $"{AppInfo.VersionString} ({AppInfo.BuildString})";
+            }
+            finally
+            {
+                _isLoadingSettings = false;
+            }
         });
     }
 
     partial void OnNotificationsEnabledChanged(bool value)
     {
+        if (_isLoadingSettings)
+            return;
+
         _settingsService.NotificationsEnabled = value;
 
         if (value)
         {
-            // Reschedule all notifications
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                await _notificationService.RecalculateAllNotificationsAsync();
-                await _backgroundTaskService.RegisterDailyNotificationTaskAsync();
+                try
+                {
+                    await _notificationService.RecalculateAllNotificationsAsync();
+                    await _backgroundTaskService.RegisterDailyNotificationTaskAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Notification setup failed: {ex}");
+                }
             });
         }
         else
         {
-            // Cancel all notifications
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                await _notificationService.CancelAllNotificationsAsync();
-                await _backgroundTaskService.UnregisterDailyNotificationTaskAsync();
+                try
+                {
+                    await _notificationService.CancelAllNotificationsAsync();
+                    await _backgroundTaskService.UnregisterDailyNotificationTaskAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Notification teardown failed: {ex}");
+                }
             });
         }
     }
 
     partial void OnDefaultReminderLeadTimeDaysChanged(int value)
     {
+        if (_isLoadingSettings)
+            return;
+
         _settingsService.DefaultReminderLeadTimeDays = value;
     }
 
