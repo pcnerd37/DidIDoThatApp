@@ -16,7 +16,15 @@ public partial class SettingsPage : ContentPage
         
         if (BindingContext is SettingsViewModel vm)
         {
-            await vm.LoadSettingsCommand.ExecuteAsync(null);
+            try
+            {
+                await App.DatabaseInitializedTask;
+                await vm.LoadSettingsCommand.ExecuteAsync(null);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Settings load failed: {ex}");
+            }
         }
     }
 }

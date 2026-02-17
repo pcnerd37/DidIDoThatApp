@@ -16,8 +16,15 @@ public partial class TaskListPage : ContentPage
         
         if (BindingContext is TaskListViewModel vm)
         {
-            await App.DatabaseInitializedTask;
-            await vm.LoadDataCommand.ExecuteAsync(null);
+            try
+            {
+                await App.DatabaseInitializedTask;
+                await vm.LoadDataCommand.ExecuteAsync(null);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"TaskListPage load failed: {ex}");
+            }
         }
     }
 }

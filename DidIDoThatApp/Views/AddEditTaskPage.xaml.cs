@@ -10,13 +10,21 @@ public partial class AddEditTaskPage : ContentPage
         BindingContext = viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         
         if (BindingContext is AddEditTaskViewModel vm)
         {
-            vm.LoadCategoriesCommand.Execute(null);
+            try
+            {
+                await App.DatabaseInitializedTask;
+                await vm.LoadCategoriesCommand.ExecuteAsync(null);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AddEditTaskPage load failed: {ex}");
+            }
         }
     }
 }

@@ -16,9 +16,15 @@ public partial class DashboardPage : ContentPage
         
         if (BindingContext is DashboardViewModel vm)
         {
-            // Wait for database to be initialized before loading data
-            await App.DatabaseInitializedTask;
-            await vm.LoadDataCommand.ExecuteAsync(null);
+            try
+            {
+                await App.DatabaseInitializedTask;
+                await vm.LoadDataCommand.ExecuteAsync(null);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DashboardPage load failed: {ex}");
+            }
         }
     }
 }

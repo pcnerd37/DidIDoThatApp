@@ -78,14 +78,22 @@ public partial class CategoryViewModel : BaseViewModel
             IReadOnlyList<Category> categories;
             IReadOnlyList<TaskItem> allTasks;
 
-            // Use prefetch service if available for faster loading
-            if (_prefetchService != null && _prefetchService.IsDataReady)
+            try
             {
-                categories = await _prefetchService.GetCategoriesAsync();
-                allTasks = await _prefetchService.GetTasksAsync();
+                if (_prefetchService != null && _prefetchService.IsDataReady)
+                {
+                    categories = await _prefetchService.GetCategoriesAsync();
+                    allTasks = await _prefetchService.GetTasksAsync();
+                }
+                else
+                {
+                    categories = await _categoryService.GetAllCategoriesAsync();
+                    allTasks = await _taskService.GetAllTasksAsync();
+                }
             }
-            else
+            catch
             {
+                // Fallback: if prefetch fails, try direct service calls
                 categories = await _categoryService.GetAllCategoriesAsync();
                 allTasks = await _taskService.GetAllTasksAsync();
             }

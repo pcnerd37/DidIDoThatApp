@@ -45,15 +45,11 @@ namespace DidIDoThatApp
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 var databaseInitializer = scope.ServiceProvider.GetRequiredService<IDatabaseInitializer>();
 
-                // Ensure database is created and migrated
                 await dbContext.Database.EnsureCreatedAsync();
-
-                // Seed initial data
                 await databaseInitializer.InitializeAsync();
                 
                 _databaseInitialized.TrySetResult(true);
 
-                // Start prefetching data in background for fast page loads
                 _ = Task.Run(async () =>
                 {
                     try
@@ -72,7 +68,8 @@ namespace DidIDoThatApp
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Database initialization error: {ex.Message}");
-                _databaseInitialized.TrySetResult(false);
+                // Signal failure as an exception so awaiting code knows it failed
+                _databaseInitialized.TrySetException(ex);
             }
         }
     }
