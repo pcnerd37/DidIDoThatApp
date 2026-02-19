@@ -31,7 +31,6 @@ public class DataPrefetchService : IDataPrefetchService
         await _lock.WaitAsync().ConfigureAwait(false);
         try
         {
-            // Skip if recently prefetched
             if (DateTime.UtcNow - _lastPrefetch < TimeSpan.FromSeconds(30) && IsDataReady)
             {
                 return;
@@ -41,20 +40,14 @@ public class DataPrefetchService : IDataPrefetchService
             var categoryService = scope.ServiceProvider.GetRequiredService<ICategoryService>();
             var taskService = scope.ServiceProvider.GetRequiredService<ITaskService>();
 
-            // Prefetch all data in parallel
-            var categoriesTask = categoryService.GetAllCategoriesAsync();
-            var tasksTask = taskService.GetAllTasksAsync();
-            var overdueTask = taskService.GetOverdueTasksAsync();
-            var dueSoonTask = taskService.GetDueSoonTasksAsync();
-            var recentTask = taskService.GetRecentlyCompletedTasksAsync(5);
-
-            await Task.WhenAll(categoriesTask, tasksTask, overdueTask, dueSoonTask, recentTask).ConfigureAwait(false);
-
-            _cachedCategories = await categoriesTask;
-            _cachedTasks = await tasksTask;
-            _cachedOverdueTasks = await overdueTask;
-            _cachedDueSoonTasks = await dueSoonTask;
-            _cachedRecentlyCompleted = await recentTask;
+            // CRITICAL FIX: Execute sequentially, not in parallel.
+            // DbContext is not thread-safe — parallel queries on the same
+            // scoped context cause native SQLite crashes (SIGABRT).
+            _cachedCategories = await categoryService.GetAllCategoriesAsync();
+            _cachedTasks = await taskService.GetAllTasksAsync();
+            _cachedOverdueTasks = await taskService.GetOverdueTasksAsync();
+            _cachedDueSoonTasks = await taskService.GetDueSoonTasksAsync();
+            _cachedRecentlyCompleted = await taskService.GetRecentlyCompletedTasksAsync(5);
             _lastPrefetch = DateTime.UtcNow;
 
             System.Diagnostics.Debug.WriteLine($"DataPrefetchService: Prefetched {_cachedCategories.Count} categories, {_cachedTasks.Count} tasks");
