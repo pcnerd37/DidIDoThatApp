@@ -1,7 +1,5 @@
 ﻿using DidIDoThatApp.Data;
 using DidIDoThatApp.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace DidIDoThatApp
 {
@@ -24,12 +22,15 @@ namespace DidIDoThatApp
         {
             InitializeComponent();
             _serviceProvider = serviceProvider;
-            
+
             // Get the prefetch service for static access
             DataPrefetchService = serviceProvider.GetService<IDataPrefetchService>();
-            
-            // Initialize database and prefetch data
-            MainThread.BeginInvokeOnMainThread(async () => await InitializeDatabaseAsync());
+
+            // Initialize database on a background thread BEFORE any pages load.
+            // Do NOT use MainThread.BeginInvokeOnMainThread here — that posts to the
+            // message queue which runs AFTER CreateWindow, causing a deadlock when
+            // pages await DatabaseInitializedTask on the main thread.
+            _ = Task.Run(async () => await InitializeDatabaseAsync());
         }
 
         protected override Window CreateWindow(IActivationState? activationState)
@@ -47,28 +48,27 @@ namespace DidIDoThatApp
 
                 await dbContext.Database.EnsureCreatedAsync();
                 await databaseInitializer.InitializeAsync();
-                
+
                 _databaseInitialized.TrySetResult(true);
 
-                _ = Task.Run(async () =>
+                // Prefetch data in the same background context for fast page loads.
+                // This runs AFTER the TrySetResult so pages can start loading immediately
+                // while prefetch populates the cache.
+                try
                 {
-                    try
+                    if (DataPrefetchService != null)
                     {
-                        if (DataPrefetchService != null)
-                        {
-                            await DataPrefetchService.PrefetchAllAsync();
-                        }
+                        await DataPrefetchService.PrefetchAllAsync();
                     }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Prefetch error: {ex.Message}");
-                    }
-                });
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Prefetch error: {ex.Message}");
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Database initialization error: {ex.Message}");
-                // Signal failure as an exception so awaiting code knows it failed
                 _databaseInitialized.TrySetException(ex);
             }
         }

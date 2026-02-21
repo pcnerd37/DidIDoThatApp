@@ -10,7 +10,7 @@ public class DataPrefetchService : IDataPrefetchService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly SemaphoreSlim _lock = new(1, 1);
-    
+
     private IReadOnlyList<Category>? _cachedCategories;
     private IReadOnlyList<TaskItem>? _cachedTasks;
     private IReadOnlyList<TaskItem>? _cachedOverdueTasks;
@@ -31,6 +31,7 @@ public class DataPrefetchService : IDataPrefetchService
         await _lock.WaitAsync().ConfigureAwait(false);
         try
         {
+            // Skip if recently prefetched
             if (DateTime.UtcNow - _lastPrefetch < TimeSpan.FromSeconds(30) && IsDataReady)
             {
                 return;
@@ -40,7 +41,7 @@ public class DataPrefetchService : IDataPrefetchService
             var categoryService = scope.ServiceProvider.GetRequiredService<ICategoryService>();
             var taskService = scope.ServiceProvider.GetRequiredService<ITaskService>();
 
-            // CRITICAL FIX: Execute sequentially, not in parallel.
+            // IMPORTANT: Execute sequentially, NOT in parallel.
             // DbContext is not thread-safe — parallel queries on the same
             // scoped context cause native SQLite crashes (SIGABRT).
             _cachedCategories = await categoryService.GetAllCategoriesAsync();
