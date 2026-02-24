@@ -23,9 +23,10 @@ public partial class CategoryPage : ContentPage
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Database init failed: {ex}");
+                var errorDetail = App.InitializationError ?? ex.Message;
                 await DisplayAlert("Error", 
-                    "The database failed to initialize. Please restart the app.", "OK");
-                return;  // Don't try to load data
+                    $"The database failed to initialize: {errorDetail}", "OK");
+                return;
             }
 
             await vm.LoadDataCommand.ExecuteAsync(null);

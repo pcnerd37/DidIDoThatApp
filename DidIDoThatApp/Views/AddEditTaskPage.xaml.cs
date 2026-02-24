@@ -23,7 +23,11 @@ public partial class AddEditTaskPage : ContentPage
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"AddEditTaskPage load failed: {ex}");
+                System.Diagnostics.Debug.WriteLine($"Database init failed: {ex}");
+                var errorDetail = App.InitializationError ?? ex.Message;
+                await DisplayAlert("Error", 
+                    $"The database failed to initialize: {errorDetail}", "OK");
+                return;
             }
         }
     }

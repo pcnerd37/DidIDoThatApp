@@ -1,5 +1,7 @@
 ﻿using DidIDoThatApp.Data;
 using DidIDoThatApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DidIDoThatApp
 {
@@ -7,11 +9,17 @@ namespace DidIDoThatApp
     {
         private readonly IServiceProvider _serviceProvider;
         private static readonly TaskCompletionSource<bool> _databaseInitialized = new();
+        private static string? _initializationError;
 
         /// <summary>
         /// Awaitable task that completes when the database is fully initialized.
         /// </summary>
         public static Task DatabaseInitializedTask => _databaseInitialized.Task;
+
+        /// <summary>
+        /// If database initialization failed, contains the error details.
+        /// </summary>
+        public static string? InitializationError => _initializationError;
 
         /// <summary>
         /// Data prefetch service for fast page loading.
@@ -22,14 +30,9 @@ namespace DidIDoThatApp
         {
             InitializeComponent();
             _serviceProvider = serviceProvider;
-
-            // Get the prefetch service for static access
+            
             DataPrefetchService = serviceProvider.GetService<IDataPrefetchService>();
-
-            // Initialize database on a background thread BEFORE any pages load.
-            // Do NOT use MainThread.BeginInvokeOnMainThread here — that posts to the
-            // message queue which runs AFTER CreateWindow, causing a deadlock when
-            // pages await DatabaseInitializedTask on the main thread.
+            
             _ = Task.Run(async () => await InitializeDatabaseAsync());
         }
 
@@ -42,23 +45,25 @@ namespace DidIDoThatApp
         {
             try
             {
+                // Use a dedicated scope for initialization only
                 using var scope = _serviceProvider.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                
+                // Ensure database is created
+                await dbContext.Database.EnsureCreatedAsync().ConfigureAwait(false);
+
+                // Seed default data
                 var databaseInitializer = scope.ServiceProvider.GetRequiredService<IDatabaseInitializer>();
-
-                await dbContext.Database.EnsureCreatedAsync();
-                await databaseInitializer.InitializeAsync();
-
+                await databaseInitializer.InitializeAsync().ConfigureAwait(false);
+                
                 _databaseInitialized.TrySetResult(true);
 
-                // Prefetch data in the same background context for fast page loads.
-                // This runs AFTER the TrySetResult so pages can start loading immediately
-                // while prefetch populates the cache.
+                // Prefetch in background after init completes
                 try
                 {
                     if (DataPrefetchService != null)
                     {
-                        await DataPrefetchService.PrefetchAllAsync();
+                        await DataPrefetchService.PrefetchAllAsync().ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex)
@@ -68,7 +73,8 @@ namespace DidIDoThatApp
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Database initialization error: {ex.Message}");
+                _initializationError = $"{ex.GetType().Name}: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"Database initialization error: {ex}");
                 _databaseInitialized.TrySetException(ex);
             }
         }

@@ -23,7 +23,11 @@ public partial class SettingsPage : ContentPage
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Settings load failed: {ex}");
+                System.Diagnostics.Debug.WriteLine($"Database init failed: {ex}");
+                var errorDetail = App.InitializationError ?? ex.Message;
+                await DisplayAlert("Error", 
+                    $"The database failed to initialize: {errorDetail}", "OK");
+                return;
             }
         }
     }
