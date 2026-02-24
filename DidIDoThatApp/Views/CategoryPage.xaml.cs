@@ -13,7 +13,7 @@ public partial class CategoryPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        
+
         if (BindingContext is CategoryViewModel vm)
         {
             try
@@ -24,12 +24,19 @@ public partial class CategoryPage : ContentPage
             {
                 System.Diagnostics.Debug.WriteLine($"Database init failed: {ex}");
                 var errorDetail = App.InitializationError ?? ex.Message;
-                await DisplayAlert("Error", 
-                    $"The database failed to initialize: {errorDetail}", "OK");
+                await DisplayAlert("Error",
+                    $"Database initialization failed: {errorDetail}", "OK");
                 return;
             }
 
-            await vm.LoadDataCommand.ExecuteAsync(null);
+            try
+            {
+                await vm.LoadDataCommand.ExecuteAsync(null);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CategoryPage load failed: {ex}");
+            }
         }
     }
 }

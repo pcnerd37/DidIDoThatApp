@@ -31,7 +31,6 @@ public class DataPrefetchService : IDataPrefetchService
         await _lock.WaitAsync().ConfigureAwait(false);
         try
         {
-            // Skip if recently prefetched
             if (DateTime.UtcNow - _lastPrefetch < TimeSpan.FromSeconds(30) && IsDataReady)
             {
                 return;
@@ -41,9 +40,7 @@ public class DataPrefetchService : IDataPrefetchService
             var categoryService = scope.ServiceProvider.GetRequiredService<ICategoryService>();
             var taskService = scope.ServiceProvider.GetRequiredService<ITaskService>();
 
-            // IMPORTANT: Execute sequentially, NOT in parallel.
-            // DbContext is not thread-safe — parallel queries on the same
-            // scoped context cause native SQLite crashes (SIGABRT).
+            // Execute sequentially — DbContext is not thread-safe
             _cachedCategories = await categoryService.GetAllCategoriesAsync();
             _cachedTasks = await taskService.GetAllTasksAsync();
             _cachedOverdueTasks = await taskService.GetOverdueTasksAsync();

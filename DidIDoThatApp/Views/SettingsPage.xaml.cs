@@ -13,21 +13,26 @@ public partial class SettingsPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        
+
         if (BindingContext is SettingsViewModel vm)
         {
             try
             {
                 await App.DatabaseInitializedTask;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Settings init failed: {ex}");
+                return;
+            }
+
+            try
+            {
                 await vm.LoadSettingsCommand.ExecuteAsync(null);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Database init failed: {ex}");
-                var errorDetail = App.InitializationError ?? ex.Message;
-                await DisplayAlert("Error", 
-                    $"The database failed to initialize: {errorDetail}", "OK");
-                return;
+                System.Diagnostics.Debug.WriteLine($"Settings load failed: {ex}");
             }
         }
     }

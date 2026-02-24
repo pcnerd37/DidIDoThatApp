@@ -13,21 +13,26 @@ public partial class AddEditTaskPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        
+
         if (BindingContext is AddEditTaskViewModel vm)
         {
             try
             {
                 await App.DatabaseInitializedTask;
-                await vm.LoadCategoriesCommand.ExecuteAsync(null);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Database init failed: {ex}");
-                var errorDetail = App.InitializationError ?? ex.Message;
-                await DisplayAlert("Error", 
-                    $"The database failed to initialize: {errorDetail}", "OK");
                 return;
+            }
+
+            try
+            {
+                await vm.LoadCategoriesCommand.ExecuteAsync(null);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AddEditTaskPage load failed: {ex}");
             }
         }
     }

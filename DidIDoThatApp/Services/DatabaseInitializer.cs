@@ -23,8 +23,7 @@ public class DatabaseInitializer : IDatabaseInitializer
 
     public async Task InitializeAsync()
     {
-        // Note: EnsureCreatedAsync is called by App.xaml.cs before this method.
-        // Do NOT call it again here to avoid potential concurrent access issues.
+        // Note: EnsureCreatedAsync is already called by App.xaml.cs before this.
 
         // Seed default data if this is the first launch
         if (!_settingsService.IsFirstLaunchComplete)
