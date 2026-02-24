@@ -101,9 +101,16 @@ public partial class DashboardViewModel : BaseViewModel
     private bool _hasRecentlyCompletedTasks;
 
     /// <summary>
-    /// True when there are no overdue or due soon tasks to display.
+    /// True until the first data load completes. Used to hide the empty state
+    /// and show a loading indicator on initial launch.
     /// </summary>
-    public bool HasNoTasks => !HasOverdueTasks && !HasDueSoonTasks;
+    private bool _hasLoadedOnce;
+
+    /// <summary>
+    /// True when there are no overdue or due soon tasks to display
+    /// AND we've finished loading at least once (so we don't flash the empty state).
+    /// </summary>
+    public bool HasNoTasks => _hasLoadedOnce && !HasOverdueTasks && !HasDueSoonTasks;
 
     [RelayCommand]
     private async Task LoadDataAsync()
@@ -139,6 +146,9 @@ public partial class DashboardViewModel : BaseViewModel
             RecentlyCompletedTasks = new ObservableCollection<TaskItemViewModel>(
                 recent.Select(t => new TaskItemViewModel(t)));
             HasRecentlyCompletedTasks = RecentlyCompletedTasks.Count > 0;
+
+            _hasLoadedOnce = true;
+            OnPropertyChanged(nameof(HasNoTasks));
         }, allowReentry: true);
     }
 
@@ -153,7 +163,6 @@ public partial class DashboardViewModel : BaseViewModel
             _prefetchService?.InvalidateCache();
         });
 
-        // Reload data after ExecuteAsync completes to avoid nested IsBusy blocking
         await LoadDataAsync();
     }
 
