@@ -49,13 +49,20 @@ jobs:
         name: test-results
         path: '**/test-results.trx'
 
+    # Pull requests from forks do not receive signing secrets; validate their builds unsigned.
     - name: Decode and setup Android keystore
+      if: github.event_name == 'push'
       run: |
         $encodedKeystore = "${{ secrets.ANDROID_KEYSTORE_BASE64 }}"
         $keystoreBytes = [Convert]::FromBase64String($encodedKeystore)
         [IO.File]::WriteAllBytes("${{ github.workspace }}/upload-keystore.jks", $keystoreBytes)
 
+    - name: Build Android Release (unsigned PR validation)
+      if: github.event_name == 'pull_request'
+      run: dotnet build DidIDoThatApp/DidIDoThatApp.csproj -f net10.0-android -c Release -p:AndroidKeyStore=false
+
     - name: Build Android Release
+      if: github.event_name == 'push'
       run: |
         dotnet build DidIDoThatApp/DidIDoThatApp.csproj -f net10.0-android -c Release `
         -p:AndroidSigningKeyStore="${{ github.workspace }}/upload-keystore.jks" `
@@ -64,6 +71,7 @@ jobs:
         -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
 
     - name: Publish Android App Bundle (AAB) for Google Play
+      if: github.event_name == 'push'
       run: |
         dotnet publish DidIDoThatApp/DidIDoThatApp.csproj -f net10.0-android -c Release `
         -p:AndroidPackageFormat=aab `
@@ -74,6 +82,7 @@ jobs:
         -o ./artifacts/android
 
     - name: Upload Android AAB artifacts
+      if: github.event_name == 'push'
       uses: actions/upload-artifact@v4
       with:
         name: android-release-aab
