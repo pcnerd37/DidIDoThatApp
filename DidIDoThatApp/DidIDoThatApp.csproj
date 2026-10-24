@@ -33,9 +33,9 @@
 
 		<!-- Versions -->
 		<!-- Display version shown to users (e.g., "1.0.0") -->
-		<ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>1.0.1</ApplicationDisplayVersion>
 		<!-- Internal version code (must increment for each release) -->
-		<ApplicationVersion>11</ApplicationVersion>
+		<ApplicationVersion>12</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
@@ -87,6 +87,10 @@
 		<PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.20" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.1" />
 		<PackageReference Include="Plugin.LocalNotification" Version="13.0.0" />
+		<PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
+		<PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.ios" Version="2.1.14" />
 	</ItemGroup>
-
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+		<PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.android" Version="2.1.12-pre20260709125052" />
+	</ItemGroup>
 </Project>
